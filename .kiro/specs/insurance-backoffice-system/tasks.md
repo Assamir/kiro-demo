@@ -28,7 +28,7 @@
   - Add comprehensive unit tests for all service classes using Mockito
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 3.1, 3.2, 3.3, 3.4, 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 5. Implement Spring Security configuration
+- [x] 5. Implement Spring Security configuration
   - Configure JWT-based authentication with custom UserDetailsService
   - Set up role-based authorization with @PreAuthorize annotations
   - Create authentication endpoints for login and token validation
