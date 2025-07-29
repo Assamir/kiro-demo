@@ -1,0 +1,28 @@
+plugins {
+    id 'base'
+}
+
+// Frontend build tasks will be added later when implementing React components
+// This placeholder ensures the frontend module is recognized by Gradle
+
+task frontendBuild {
+    group = 'build'
+    description = 'Build the frontend application'
+    
+    doLast {
+        println 'Frontend build placeholder - will be implemented with React setup'
+    }
+}
+
+task frontendClean {
+    group = 'build'
+    description = 'Clean the frontend build artifacts'
+    
+    doLast {
+        println 'Frontend clean placeholder'
+    }
+}
+
+// Override default tasks to use custom ones
+build.dependsOn frontendBuild
+clean.dependsOn frontendClean

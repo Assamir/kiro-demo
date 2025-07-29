@@ -1,0 +1,4 @@
+rootProject.name = 'insurance-backoffice-system'
+
+include 'backend'
+include 'frontend'

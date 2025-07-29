@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+}
+
+allprojects {
+    group = 'com.insurance.backoffice'
+    version = '1.0.0'
+    
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    
+    java {
+        sourceCompatibility = '17'
+        targetCompatibility = '17'
+    }
+    
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
+        }
+    }
+}

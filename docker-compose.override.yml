@@ -1,0 +1,19 @@
+# Development overrides for docker-compose.yml
+# This file is automatically loaded by docker-compose for development
+
+services:
+  backend:
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DEVTOOLS_RESTART_ENABLED: true
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/build.gradle:/app/build.gradle
+    command: ["./gradlew", "bootRun", "--continuous"]
+
+  frontend:
+    environment:
+      NODE_ENV: development
+      CHOKIDAR_USEPOLLING: true
+    stdin_open: true
+    tty: true
