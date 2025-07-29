@@ -13,18 +13,13 @@
   - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
 - [x] 2. Implement core domain models and database schema
-
-
-
-
-
   - Create JPA entity classes for User, Client, Vehicle, Policy, PolicyDetails, and RatingTable
   - Implement Builder pattern for entity creation following clean code principles
   - Create database migration scripts using Flyway for schema creation
   - Add proper indexes and constraints for data integrity
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 3. Implement repository layer with Spring Data JPA
+- [x] 3. Implement repository layer with Spring Data JPA
   - Create repository interfaces extending JpaRepository for all entities
   - Implement custom query methods for policy search by client and complex filtering
   - Add repository unit tests using @DataJpaTest with TestContainers
