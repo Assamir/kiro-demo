@@ -1,11 +1,6 @@
 # Implementation Plan
 
 - [x] 1. Set up project structure and build configuration
-
-
-
-
-
   - Create Gradle multi-module project structure with backend and frontend modules
   - Configure Gradle build files with all required dependencies (Spring Boot, PostgreSQL, SpringDoc OpenAPI, etc.)
   - Set up Docker Compose configuration for development environment
@@ -26,7 +21,7 @@
   - Implement proper exception handling for data access operations
   - _Requirements: 2.1, 3.1, 3.2, 4.5_
 
-- [ ] 4. Create service layer with business logic
+- [x] 4. Create service layer with business logic
   - Implement UserService with user management operations and role-based access control
   - Create PolicyService with policy creation, update, and cancellation logic
   - Implement RatingService for premium calculations using rating tables
