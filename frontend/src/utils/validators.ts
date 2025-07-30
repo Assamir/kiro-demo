@@ -43,7 +43,7 @@ export const isValidRegistrationNumber = (regNumber: string): boolean => {
 
 // Phone number validation
 export const isValidPhoneNumber = (phone: string): boolean => {
-  const phoneRegex = /^\+?[\d\s\-\(\)]{9,15}$/;
+  const phoneRegex = /^\+?[\d\s\-()]{9,15}$/;
   return phoneRegex.test(phone);
 };
 

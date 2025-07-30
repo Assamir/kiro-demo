@@ -13,6 +13,12 @@ import {
 import { Business } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { LoginRequest } from '../types/auth';
+import { isValidEmail, isRequired } from '../utils/validators';
+
+interface FormErrors {
+  email?: string;
+  password?: string;
+}
 
 const LoginPage: React.FC = () => {
   const { login, isAuthenticated } = useAuth();
@@ -23,6 +29,7 @@ const LoginPage: React.FC = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   const from = location.state?.from?.pathname || '/dashboard';
 
@@ -30,10 +37,33 @@ const LoginPage: React.FC = () => {
     return <Navigate to={from} replace />;
   }
 
+  const validateForm = (): boolean => {
+    const errors: FormErrors = {};
+
+    if (!isRequired(credentials.email)) {
+      errors.email = 'Email is required';
+    } else if (!isValidEmail(credentials.email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+
+    if (!isRequired(credentials.password)) {
+      errors.password = 'Password is required';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
+    setFormErrors({});
 
     try {
       await login(credentials);
@@ -47,10 +77,19 @@ const LoginPage: React.FC = () => {
   const handleChange = (field: keyof LoginRequest) => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
+    const value = e.target.value;
     setCredentials(prev => ({
       ...prev,
-      [field]: e.target.value,
+      [field]: value,
     }));
+
+    // Clear field error when user starts typing
+    if (formErrors[field]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [field]: undefined,
+      }));
+    }
   };
 
   return (
@@ -92,6 +131,9 @@ const LoginPage: React.FC = () => {
               margin="normal"
               required
               disabled={isLoading}
+              error={!!formErrors.email}
+              helperText={formErrors.email}
+              autoComplete="email"
             />
             <TextField
               fullWidth
@@ -102,6 +144,9 @@ const LoginPage: React.FC = () => {
               margin="normal"
               required
               disabled={isLoading}
+              error={!!formErrors.password}
+              helperText={formErrors.password}
+              autoComplete="current-password"
             />
             <Button
               type="submit"

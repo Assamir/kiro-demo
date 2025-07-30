@@ -30,9 +30,18 @@ apiClient.interceptors.response.use(
   },
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      // Unauthorized - redirect to login
+      // Unauthorized - clear token and redirect to login
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      // Only redirect if not already on login page
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+    } else if (error.response?.status === 403) {
+      // Forbidden - user doesn't have permission
+      console.warn('Access denied:', error.response.data);
+    } else if (error.response?.status && error.response.status >= 500) {
+      // Server error
+      console.error('Server error:', error.response.data);
     }
     return Promise.reject(error);
   }

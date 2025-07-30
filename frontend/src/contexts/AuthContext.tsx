@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { User, LoginRequest, AuthResponse } from '../types/auth';
 import { authService } from '../services/authService';
 
@@ -7,7 +7,11 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (credentials: LoginRequest) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
+  hasRole: (role: 'ADMIN' | 'OPERATOR') => boolean;
+  canManageUsers: () => boolean;
+  canIssuePolicies: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -50,10 +54,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
-  };
+  const logout = useCallback(async (): Promise<void> => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      // Continue with logout even if server call fails
+      console.warn('Logout request failed:', error);
+    } finally {
+      localStorage.removeItem('token');
+      setUser(null);
+    }
+  }, []);
+
+  const refreshUser = useCallback(async (): Promise<void> => {
+    try {
+      const userData = await authService.getCurrentUser();
+      setUser(userData);
+    } catch (error) {
+      // If refresh fails, user is likely not authenticated
+      localStorage.removeItem('token');
+      setUser(null);
+      throw error;
+    }
+  }, []);
+
+  const hasRole = useCallback((role: 'ADMIN' | 'OPERATOR'): boolean => {
+    return user?.role === role;
+  }, [user]);
+
+  const canManageUsers = useCallback((): boolean => {
+    return user?.role === 'ADMIN';
+  }, [user]);
+
+  const canIssuePolicies = useCallback((): boolean => {
+    return user?.role === 'OPERATOR' || user?.role === 'ADMIN';
+  }, [user]);
 
   const value: AuthContextType = {
     user,
@@ -61,6 +96,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     login,
     logout,
+    refreshUser,
+    hasRole,
+    canManageUsers,
+    canIssuePolicies,
   };
 
   return (
