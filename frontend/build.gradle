@@ -2,27 +2,47 @@ plugins {
     id 'base'
 }
 
-// Frontend build tasks will be added later when implementing React components
-// This placeholder ensures the frontend module is recognized by Gradle
-
-task frontendBuild {
+// Frontend build tasks for React application
+task npmInstall(type: Exec) {
     group = 'build'
-    description = 'Build the frontend application'
-    
-    doLast {
-        println 'Frontend build placeholder - will be implemented with React setup'
-    }
+    description = 'Install npm dependencies'
+    commandLine 'npm', 'install'
+    inputs.file 'package.json'
+    outputs.dir 'node_modules'
 }
 
-task frontendClean {
+task frontendBuild(type: Exec) {
+    group = 'build'
+    description = 'Build the React frontend application'
+    dependsOn npmInstall
+    commandLine 'npm', 'run', 'build'
+    inputs.dir 'src'
+    inputs.file 'package.json'
+    outputs.dir 'build'
+}
+
+task frontendTest(type: Exec) {
+    group = 'verification'
+    description = 'Run frontend tests'
+    dependsOn npmInstall
+    commandLine 'npm', 'test', '--', '--coverage', '--watchAll=false'
+}
+
+task frontendStart(type: Exec) {
+    group = 'application'
+    description = 'Start the React development server'
+    dependsOn npmInstall
+    commandLine 'npm', 'start'
+}
+
+task frontendClean(type: Delete) {
     group = 'build'
     description = 'Clean the frontend build artifacts'
-    
-    doLast {
-        println 'Frontend clean placeholder'
-    }
+    delete 'build'
+    delete 'node_modules'
 }
 
 // Override default tasks to use custom ones
 build.dependsOn frontendBuild
 clean.dependsOn frontendClean
+test.dependsOn frontendTest
