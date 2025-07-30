@@ -50,7 +50,7 @@
   - Add unit tests for PDF generation functionality
   - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
 
-- [ ] 8. Create rating system for premium calculations
+- [x] 8. Create rating system for premium calculations
   - Implement rating table data structure and seed data
   - Create premium calculation algorithms for OC, AC, and NNW insurance types
   - Add validation for rating factors and business rules

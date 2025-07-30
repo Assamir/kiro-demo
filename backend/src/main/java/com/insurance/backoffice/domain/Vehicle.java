@@ -47,8 +47,8 @@ public class Vehicle {
     @OneToMany(mappedBy = "vehicle", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Policy> policies = new ArrayList<>();
     
-    // Default constructor for JPA
-    protected Vehicle() {}
+    // Default constructor for JPA and testing
+    public Vehicle() {}
     
     // Private constructor for Builder pattern
     private Vehicle(Builder builder) {

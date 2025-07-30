@@ -34,8 +34,8 @@ public class RatingTable {
     @Column(name = "valid_to")
     private LocalDate validTo;
     
-    // Default constructor for JPA
-    protected RatingTable() {}
+    // Default constructor for JPA and testing
+    public RatingTable() {}
     
     // Private constructor for Builder pattern
     private RatingTable(Builder builder) {
