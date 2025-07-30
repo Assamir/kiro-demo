@@ -2,6 +2,8 @@ package com.insurance.backoffice.interfaces.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.insurance.backoffice.application.service.PolicyService;
+import com.insurance.backoffice.application.service.PdfService;
+import com.insurance.backoffice.application.service.PdfGenerationException;
 import com.insurance.backoffice.domain.*;
 import com.insurance.backoffice.interfaces.controller.PolicyController.CreatePolicyRequest;
 import com.insurance.backoffice.interfaces.controller.PolicyController.PolicyResponse;
@@ -42,6 +44,9 @@ class PolicyControllerTest {
     
     @MockBean
     private PolicyService policyService;
+    
+    @MockBean
+    private PdfService pdfService;
     
     @Autowired
     private ObjectMapper objectMapper;
@@ -213,16 +218,21 @@ class PolicyControllerTest {
     void shouldGeneratePolicyPdfSuccessfully() throws Exception {
         // Given
         Policy policy = createMockPolicy();
+        byte[] pdfBytes = "PDF content".getBytes();
         
         when(policyService.findPolicyById(1L)).thenReturn(policy);
+        when(pdfService.generatePolicyPdf(policy)).thenReturn(pdfBytes);
         
         // When & Then
         mockMvc.perform(post("/api/policies/1/pdf")
                 .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_PDF));
+                .andExpect(content().contentType(MediaType.APPLICATION_PDF))
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"policy_POL-2024-001.pdf\""))
+                .andExpect(content().bytes(pdfBytes));
         
         verify(policyService).findPolicyById(1L);
+        verify(pdfService).generatePolicyPdf(policy);
     }
     
     @Test
@@ -230,16 +240,20 @@ class PolicyControllerTest {
     void shouldGeneratePolicyPdfAsAdmin() throws Exception {
         // Given
         Policy policy = createMockPolicy();
+        byte[] pdfBytes = "PDF content".getBytes();
         
         when(policyService.findPolicyById(1L)).thenReturn(policy);
+        when(pdfService.generatePolicyPdf(policy)).thenReturn(pdfBytes);
         
         // When & Then
         mockMvc.perform(post("/api/policies/1/pdf")
                 .with(csrf()))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_PDF));
+                .andExpect(content().contentType(MediaType.APPLICATION_PDF))
+                .andExpect(header().string("Content-Disposition", "attachment; filename=\"policy_POL-2024-001.pdf\""));
         
         verify(policyService).findPolicyById(1L);
+        verify(pdfService).generatePolicyPdf(policy);
     }
     
     @Test
@@ -255,6 +269,37 @@ class PolicyControllerTest {
                 .andExpect(status().isNotFound());
         
         verify(policyService).findPolicyById(999L);
+        verifyNoInteractions(pdfService);
+    }
+    
+    @Test
+    @WithMockUser(roles = "OPERATOR")
+    void shouldReturnInternalServerErrorWhenPdfGenerationFails() throws Exception {
+        // Given
+        Policy policy = createMockPolicy();
+        
+        when(policyService.findPolicyById(1L)).thenReturn(policy);
+        when(pdfService.generatePolicyPdf(policy))
+            .thenThrow(new PdfGenerationException("PDF generation failed"));
+        
+        // When & Then
+        mockMvc.perform(post("/api/policies/1/pdf")
+                .with(csrf()))
+                .andExpect(status().isInternalServerError());
+        
+        verify(policyService).findPolicyById(1L);
+        verify(pdfService).generatePolicyPdf(policy);
+    }
+    
+    @Test
+    void shouldReturnUnauthorizedWhenUnauthenticatedUserTriesToGeneratePdf() throws Exception {
+        // When & Then
+        mockMvc.perform(post("/api/policies/1/pdf")
+                .with(csrf()))
+                .andExpect(status().isUnauthorized());
+        
+        verifyNoInteractions(policyService);
+        verifyNoInteractions(pdfService);
     }
     
     // Helper methods for creating mock objects

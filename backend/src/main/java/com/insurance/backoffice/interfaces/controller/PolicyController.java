@@ -32,9 +32,12 @@ import java.util.List;
 public class PolicyController {
     
     private final com.insurance.backoffice.application.service.PolicyService policyService;
+    private final com.insurance.backoffice.application.service.PdfService pdfService;
     
-    public PolicyController(com.insurance.backoffice.application.service.PolicyService policyService) {
+    public PolicyController(com.insurance.backoffice.application.service.PolicyService policyService,
+                           com.insurance.backoffice.application.service.PdfService pdfService) {
         this.policyService = policyService;
+        this.pdfService = pdfService;
     }
     
     /**
@@ -270,17 +273,21 @@ public class PolicyController {
     public ResponseEntity<byte[]> generatePolicyPdf(
             @Parameter(description = "Policy ID", example = "1", required = true)
             @PathVariable Long id) {
-        // TODO: Implement PDF generation in future task
-        // For now, return a placeholder response
         try {
             com.insurance.backoffice.domain.Policy policy = policyService.findPolicyById(id);
-            // Placeholder PDF content
-            String pdfContent = "PDF for Policy: " + policy.getPolicyNumber();
+            byte[] pdfBytes = pdfService.generatePolicyPdf(policy);
+            
+            String filename = "policy_" + policy.getPolicyNumber() + ".pdf";
+            
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_PDF)
-                    .body(pdfContent.getBytes());
+                    .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                    .body(pdfBytes);
+                    
         } catch (com.insurance.backoffice.application.service.EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (com.insurance.backoffice.application.service.PdfGenerationException e) {
+            return ResponseEntity.internalServerError().build();
         }
     }
     

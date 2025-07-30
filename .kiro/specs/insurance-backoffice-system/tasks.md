@@ -43,7 +43,7 @@
   - Add controller unit tests using @WebMvcTest with MockMvc
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 7. Implement PDF generation service
+- [x] 7. Implement PDF generation service
   - Create PdfService using iText library for policy document generation
   - Design professional PDF template with company branding
   - Implement PDF generation endpoint in PolicyController
