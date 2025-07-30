@@ -52,6 +52,7 @@ public class Vehicle {
     
     // Private constructor for Builder pattern
     private Vehicle(Builder builder) {
+        this.id = builder.id;
         this.make = builder.make;
         this.model = builder.model;
         this.yearOfManufacture = builder.yearOfManufacture;
@@ -165,6 +166,7 @@ public class Vehicle {
      * Builder pattern implementation for clean object creation.
      */
     public static class Builder {
+        private Long id;
         private String make;
         private String model;
         private Integer yearOfManufacture;
@@ -173,6 +175,11 @@ public class Vehicle {
         private Integer engineCapacity;
         private Integer power;
         private LocalDate firstRegistrationDate;
+        
+        public Builder id(Long id) {
+            this.id = id;
+            return this;
+        }
         
         public Builder make(String make) {
             this.make = make;

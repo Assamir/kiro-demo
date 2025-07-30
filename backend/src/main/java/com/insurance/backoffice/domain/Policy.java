@@ -61,6 +61,7 @@ public class Policy {
     
     // Private constructor for Builder pattern
     private Policy(Builder builder) {
+        this.id = builder.id;
         this.policyNumber = builder.policyNumber;
         this.issueDate = builder.issueDate;
         this.startDate = builder.startDate;
@@ -218,6 +219,7 @@ public class Policy {
      * Builder pattern implementation for clean object creation.
      */
     public static class Builder {
+        private Long id;
         private String policyNumber;
         private LocalDate issueDate;
         private LocalDate startDate;
@@ -228,6 +230,11 @@ public class Policy {
         private BigDecimal discountSurcharge;
         private Client client;
         private Vehicle vehicle;
+        
+        public Builder id(Long id) {
+            this.id = id;
+            return this;
+        }
         
         public Builder policyNumber(String policyNumber) {
             this.policyNumber = policyNumber;

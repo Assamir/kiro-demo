@@ -15,6 +15,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.context.annotation.Import;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -27,7 +28,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Unit tests for AuthController class.
  * Clean Code: Web layer testing with mocked service dependencies.
  */
-@WebMvcTest(AuthController.class)
+@WebMvcTest(controllers = AuthController.class, 
+    excludeAutoConfiguration = {
+        org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration.class,
+        org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration.class
+    })
 @TestPropertySource(locations = "classpath:application-test.properties")
 class AuthControllerTest {
     

@@ -41,6 +41,7 @@ public class Client {
     
     // Private constructor for Builder pattern
     private Client(Builder builder) {
+        this.id = builder.id;
         this.fullName = builder.fullName;
         this.pesel = builder.pesel;
         this.address = builder.address;
@@ -127,11 +128,17 @@ public class Client {
      * Builder pattern implementation for clean object creation.
      */
     public static class Builder {
+        private Long id;
         private String fullName;
         private String pesel;
         private String address;
         private String email;
         private String phoneNumber;
+        
+        public Builder id(Long id) {
+            this.id = id;
+            return this;
+        }
         
         public Builder fullName(String fullName) {
             this.fullName = fullName;

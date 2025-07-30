@@ -35,7 +35,7 @@
   - Implement security unit tests to verify access control rules
   - _Requirements: 1.5, 3.5_
 
-- [ ] 6. Create REST API controllers with Swagger documentation
+- [x] 6. Create REST API controllers with Swagger documentation
   - Implement UserController with full CRUD operations for admin users
   - Create PolicyController with policy management endpoints for operators
   - Add AuthController for authentication operations
