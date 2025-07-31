@@ -71,7 +71,8 @@
   - Create authentication context and hooks for state management
   - _Requirements: 1.5, 3.5_
 
-- [ ] 11. Create main layout and navigation components
+- [x] 11. Create main layout and navigation components
+
   - Implement responsive app header with user information and role display
   - Create sidebar navigation with role-based menu items
   - Design dashboard landing page with system overview

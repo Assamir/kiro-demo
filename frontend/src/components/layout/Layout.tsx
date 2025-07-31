@@ -8,14 +8,20 @@ const Layout: React.FC = () => {
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar />
-      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+      <Box sx={{ 
+        flexGrow: 1, 
+        display: 'flex', 
+        flexDirection: 'column',
+        width: { xs: '100%', md: 'calc(100% - 240px)' } // Responsive width
+      }}>
         <Header />
         <Box 
           component="main" 
           sx={{ 
             flexGrow: 1, 
-            p: 3, 
-            backgroundColor: 'background.default' 
+            p: { xs: 2, sm: 3 }, // Responsive padding
+            backgroundColor: 'background.default',
+            overflow: 'auto'
           }}
         >
           <Outlet />

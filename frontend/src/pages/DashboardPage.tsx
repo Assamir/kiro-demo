@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -7,17 +8,22 @@ import {
   CardContent,
   CardActions,
   Button,
+  Chip,
+  Paper,
 } from '@mui/material';
 import {
   Policy,
   People,
   TrendingUp,
   Assessment,
+  Security,
+  Schedule,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const dashboardCards = [
     {
@@ -26,6 +32,7 @@ const DashboardPage: React.FC = () => {
       icon: <Policy sx={{ fontSize: 40, color: 'primary.main' }} />,
       action: 'View Policies',
       path: '/policies',
+      available: true,
     },
     ...(user?.role === 'ADMIN' ? [{
       title: 'Users',
@@ -33,6 +40,7 @@ const DashboardPage: React.FC = () => {
       icon: <People sx={{ fontSize: 40, color: 'primary.main' }} />,
       action: 'Manage Users',
       path: '/users',
+      available: true,
     }] : []),
     {
       title: 'Reports',
@@ -40,6 +48,7 @@ const DashboardPage: React.FC = () => {
       icon: <Assessment sx={{ fontSize: 40, color: 'primary.main' }} />,
       action: 'View Reports',
       path: '/reports',
+      available: false,
     },
     {
       title: 'Analytics',
@@ -47,8 +56,15 @@ const DashboardPage: React.FC = () => {
       icon: <TrendingUp sx={{ fontSize: 40, color: 'primary.main' }} />,
       action: 'View Analytics',
       path: '/analytics',
+      available: false,
     },
   ];
+
+  const handleNavigation = (path: string, available: boolean) => {
+    if (available) {
+      navigate(path);
+    }
+  };
 
   return (
     <Box>
@@ -59,7 +75,84 @@ const DashboardPage: React.FC = () => {
         Here's an overview of your insurance backoffice system.
       </Typography>
 
+      {/* System Status Overview */}
+      <Paper sx={{ p: 3, mb: 4, backgroundColor: 'background.paper' }}>
+        <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Security color="primary" />
+          System Status
+        </Typography>
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6} md={3}>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" color="success.main">
+                Online
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                System Status
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" color="primary.main">
+                {user?.role}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Your Role
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" color="info.main">
+                <Schedule />
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Last Login: Today
+              </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <Box sx={{ textAlign: 'center' }}>
+              <Typography variant="h4" color="warning.main">
+                v1.0.0
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                System Version
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      {/* Quick Actions */}
+      <Typography variant="h5" gutterBottom sx={{ mt: 4, mb: 2 }}>
+        Quick Actions
+      </Typography>
+
       <Grid container spacing={3}>
+        {/* Role-based access information */}
+        {user?.role === 'ADMIN' && (
+          <Grid item xs={12}>
+            <Paper sx={{ p: 2, mb: 2, backgroundColor: 'info.light', color: 'info.contrastText' }}>
+              <Typography variant="body2">
+                <strong>Admin Access:</strong> You have full system access including user management. 
+                Note: Admins cannot issue policies directly - this is restricted to Operators only.
+              </Typography>
+            </Paper>
+          </Grid>
+        )}
+        {user?.role === 'OPERATOR' && (
+          <Grid item xs={12}>
+            <Paper sx={{ p: 2, mb: 2, backgroundColor: 'success.light', color: 'success.contrastText' }}>
+              <Typography variant="body2">
+                <strong>Operator Access:</strong> You can issue and manage insurance policies. 
+                User management functions are restricted to Admin users only.
+              </Typography>
+            </Paper>
+          </Grid>
+        )}
+        
         {dashboardCards.map((card, index) => (
           <Grid item xs={12} sm={6} md={4} key={index}>
             <Card 
@@ -86,14 +179,26 @@ const DashboardPage: React.FC = () => {
               <CardActions sx={{ justifyContent: 'center', pb: 2 }}>
                 <Button 
                   size="small" 
-                  variant="contained"
-                  onClick={() => {
-                    // Navigation will be implemented in later tasks
-                    console.log(`Navigate to ${card.path}`);
+                  variant={card.available ? "contained" : "outlined"}
+                  disabled={!card.available}
+                  onClick={() => handleNavigation(card.path, card.available)}
+                  sx={{
+                    ...(card.available ? {} : {
+                      opacity: 0.6,
+                      cursor: 'not-allowed'
+                    })
                   }}
                 >
                   {card.action}
                 </Button>
+                {!card.available && (
+                  <Chip 
+                    label="Coming Soon" 
+                    size="small" 
+                    color="secondary" 
+                    sx={{ mt: 1 }}
+                  />
+                )}
               </CardActions>
             </Card>
           </Grid>

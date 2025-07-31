@@ -72,6 +72,7 @@ const Sidebar: React.FC = () => {
           backgroundColor: 'background.paper',
           borderRight: '1px solid',
           borderColor: 'divider',
+          display: { xs: 'none', md: 'block' }, // Hide on mobile
         },
       }}
     >
