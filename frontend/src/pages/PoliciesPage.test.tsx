@@ -48,6 +48,18 @@ jest.mock('../components/policies/CancelPolicyDialog', () => {
   };
 });
 
+jest.mock('../components/policies/PdfPreviewModal', () => {
+  return function MockPdfPreviewModal({ open, onClose, policy }: any) {
+    if (!open) return null;
+    return (
+      <div data-testid="pdf-preview-modal">
+        <div>PDF Preview for {policy?.policyNumber}</div>
+        <button onClick={onClose}>Close PDF Preview</button>
+      </div>
+    );
+  };
+});
+
 const mockPolicies = [
   {
     id: 1,
@@ -207,30 +219,7 @@ describe('PoliciesPage', () => {
     });
   });
 
-  test('generates PDF successfully', async () => {
-    const mockBlob = new Blob(['pdf content'], { type: 'application/pdf' });
-    mockedPolicyService.generatePolicyPdf.mockResolvedValue(mockBlob);
-    
-    // Mock URL.createObjectURL and related methods
-    const mockCreateObjectURL = jest.fn().mockReturnValue('blob:mock-url');
-    const mockRevokeObjectURL = jest.fn();
-    global.URL.createObjectURL = mockCreateObjectURL;
-    global.URL.revokeObjectURL = mockRevokeObjectURL;
-    
-    // Mock document.createElement and appendChild
-    const mockLink = {
-      href: '',
-      download: '',
-      click: jest.fn(),
-    };
-    const mockCreateElement = jest.fn().mockReturnValue(mockLink);
-    const mockAppendChild = jest.fn();
-    const mockRemoveChild = jest.fn();
-    
-    document.createElement = mockCreateElement;
-    document.body.appendChild = mockAppendChild;
-    document.body.removeChild = mockRemoveChild;
-    
+  test('opens PDF preview modal when generate PDF is triggered', async () => {
     render(<PoliciesPage />);
     
     await waitFor(() => {
@@ -240,12 +229,28 @@ describe('PoliciesPage', () => {
     const pdfButton = screen.getByText('Generate PDF');
     fireEvent.click(pdfButton);
     
+    expect(screen.getByTestId('pdf-preview-modal')).toBeInTheDocument();
+    expect(screen.getByText('PDF Preview for POL-2024-001')).toBeInTheDocument();
+  });
+
+  test('closes PDF preview modal when close button is clicked', async () => {
+    render(<PoliciesPage />);
+    
     await waitFor(() => {
-      expect(mockedPolicyService.generatePolicyPdf).toHaveBeenCalledWith(1);
-      expect(mockCreateObjectURL).toHaveBeenCalledWith(mockBlob);
-      expect(mockLink.download).toBe('policy_POL-2024-001.pdf');
-      expect(mockLink.click).toHaveBeenCalled();
+      expect(screen.getByTestId('policy-list')).toBeInTheDocument();
     });
+    
+    // Open PDF preview
+    const pdfButton = screen.getByText('Generate PDF');
+    fireEvent.click(pdfButton);
+    
+    expect(screen.getByTestId('pdf-preview-modal')).toBeInTheDocument();
+    
+    // Close PDF preview
+    const closeButton = screen.getByText('Close PDF Preview');
+    fireEvent.click(closeButton);
+    
+    expect(screen.queryByTestId('pdf-preview-modal')).not.toBeInTheDocument();
   });
 
   test('handles data loading error', async () => {

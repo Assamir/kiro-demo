@@ -101,7 +101,7 @@
   - Include premium calculation display with rating factor breakdown
   - _Requirements: 2.2, 2.3, 2.4, 8.1, 8.2, 8.3, 8.4, 8.5_
 
-- [ ] 15. Add PDF generation and download functionality
+- [x] 15. Add PDF generation and download functionality
   - Implement PDF generation button in policy details view
   - Create PDF preview modal with download option
   - Add error handling for PDF generation failures

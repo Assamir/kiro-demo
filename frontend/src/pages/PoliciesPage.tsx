@@ -12,6 +12,7 @@ import { policyService } from '../services/policyService';
 import PolicyList from '../components/policies/PolicyList';
 import PolicyForm from '../components/policies/PolicyForm';
 import CancelPolicyDialog from '../components/policies/CancelPolicyDialog';
+import PdfPreviewModal from '../components/policies/PdfPreviewModal';
 
 const PoliciesPage: React.FC = () => {
   const [policies, setPolicies] = useState<Policy[]>([]);
@@ -20,6 +21,7 @@ const PoliciesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [formOpen, setFormOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [pdfPreviewOpen, setPdfPreviewOpen] = useState(false);
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
@@ -76,24 +78,9 @@ const PoliciesPage: React.FC = () => {
     setCancelDialogOpen(true);
   };
 
-  const handleGeneratePdf = async (policy: Policy) => {
-    try {
-      const pdfBlob = await policyService.generatePolicyPdf(policy.id);
-      
-      // Create download link
-      const url = window.URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `policy_${policy.policyNumber}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      
-      showNotification('PDF generated successfully', 'success');
-    } catch (error: any) {
-      showNotification('Failed to generate PDF: ' + (error.response?.data?.message || error.message), 'error');
-    }
+  const handleGeneratePdf = (policy: Policy) => {
+    setSelectedPolicy(policy);
+    setPdfPreviewOpen(true);
   };
 
   const handleFormSubmit = async (policyData: CreatePolicyRequest | UpdatePolicyRequest) => {
@@ -193,6 +180,13 @@ const PoliciesPage: React.FC = () => {
         onConfirm={handleCancelConfirm}
         policy={selectedPolicy}
         loading={cancelLoading}
+      />
+
+      {/* PDF Preview Modal */}
+      <PdfPreviewModal
+        open={pdfPreviewOpen}
+        onClose={() => setPdfPreviewOpen(false)}
+        policy={selectedPolicy}
       />
 
       {/* Notification Snackbar */}
