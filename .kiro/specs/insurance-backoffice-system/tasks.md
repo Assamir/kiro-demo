@@ -94,7 +94,7 @@
   - Implement policy cancellation with confirmation dialog
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 14. Implement insurance type specific forms
+- [x] 14. Implement insurance type specific forms
   - Create OC insurance form with guaranteed sum and coverage area fields
   - Implement AC insurance form with variant selection and comprehensive coverage options
   - Add NNW insurance form with sum insured and covered persons fields

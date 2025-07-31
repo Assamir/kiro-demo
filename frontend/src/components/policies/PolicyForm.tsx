@@ -24,7 +24,11 @@ import {
   Euro,
   Security,
 } from '@mui/icons-material';
-import { Policy, CreatePolicyRequest, UpdatePolicyRequest, Client, Vehicle } from '../../types/policy';
+import { Policy, CreatePolicyRequest, UpdatePolicyRequest, Client, Vehicle, PolicyDetails } from '../../types/policy';
+import OCInsuranceForm from './OCInsuranceForm';
+import ACInsuranceForm from './ACInsuranceForm';
+import NNWInsuranceForm from './NNWInsuranceForm';
+import PremiumCalculationDisplay from './PremiumCalculationDisplay';
 
 interface PolicyFormProps {
   open: boolean;
@@ -43,6 +47,7 @@ interface FormData {
   startDate: string;
   endDate: string;
   discountSurcharge: number | '';
+  policyDetails: PolicyDetails;
 }
 
 interface FormErrors {
@@ -52,6 +57,15 @@ interface FormErrors {
   startDate?: string;
   endDate?: string;
   discountSurcharge?: string;
+  // Policy details errors
+  guaranteedSum?: string;
+  coverageArea?: string;
+  acVariant?: string;
+  sumInsured?: string;
+  coverageScope?: string;
+  deductible?: string;
+  workshopType?: string;
+  coveredPersons?: string;
 }
 
 const PolicyForm: React.FC<PolicyFormProps> = ({
@@ -73,6 +87,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
     startDate: '',
     endDate: '',
     discountSurcharge: '',
+    policyDetails: {},
   });
 
   const [errors, setErrors] = useState<FormErrors>({});
@@ -91,6 +106,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
         startDate: policy.startDate,
         endDate: policy.endDate,
         discountSurcharge: '',
+        policyDetails: policy.policyDetails || {},
       });
     } else {
       // Set default dates for new policies
@@ -105,6 +121,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
         startDate: today.toISOString().split('T')[0],
         endDate: nextYear.toISOString().split('T')[0],
         discountSurcharge: '',
+        policyDetails: {},
       });
     }
     setErrors({});
@@ -146,6 +163,43 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
       newErrors.discountSurcharge = 'Must be a valid number';
     }
 
+    // Policy details validation based on insurance type
+    if (formData.insuranceType) {
+      const details = formData.policyDetails;
+      
+      switch (formData.insuranceType) {
+        case 'OC':
+          if (!details.guaranteedSum) {
+            newErrors.guaranteedSum = 'Guaranteed sum is required for OC insurance';
+          }
+          if (!details.coverageArea) {
+            newErrors.coverageArea = 'Coverage area is required for OC insurance';
+          }
+          break;
+          
+        case 'AC':
+          if (!details.acVariant) {
+            newErrors.acVariant = 'AC variant is required for AC insurance';
+          }
+          if (!details.sumInsured) {
+            newErrors.sumInsured = 'Sum insured is required for AC insurance';
+          }
+          if (!details.coverageScope) {
+            newErrors.coverageScope = 'Coverage scope is required for AC insurance';
+          }
+          break;
+          
+        case 'NNW':
+          if (!details.sumInsured) {
+            newErrors.sumInsured = 'Sum insured is required for NNW insurance';
+          }
+          if (!details.coveredPersons) {
+            newErrors.coveredPersons = 'Covered persons specification is required for NNW insurance';
+          }
+          break;
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -166,17 +220,40 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
     }));
     
     // Clear error for this field when user starts typing
-    if (errors[field]) {
+    if (field !== 'policyDetails' && errors[field as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
 
   const handleSelectChange = (field: keyof FormData) => (event: any) => {
     const value = event.target.value;
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => ({ 
+      ...prev, 
+      [field]: value,
+      // Reset policy details when insurance type changes
+      ...(field === 'insuranceType' && { policyDetails: {} })
+    }));
     
-    if (errors[field]) {
+    if (field !== 'policyDetails' && errors[field as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
+    }
+  };
+
+  const handlePolicyDetailsChange = (details: PolicyDetails) => {
+    setFormData(prev => ({ ...prev, policyDetails: details }));
+    
+    // Clear policy details errors when user makes changes
+    const detailsErrors = ['guaranteedSum', 'coverageArea', 'acVariant', 'sumInsured', 'coverageScope', 'deductible', 'workshopType', 'coveredPersons'];
+    const hasDetailsErrors = detailsErrors.some(field => errors[field as keyof FormErrors]);
+    
+    if (hasDetailsErrors) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        detailsErrors.forEach(field => {
+          delete newErrors[field as keyof FormErrors];
+        });
+        return newErrors;
+      });
     }
   };
 
@@ -196,6 +273,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
         startDate: formData.startDate,
         endDate: formData.endDate,
         discountSurcharge: formData.discountSurcharge === '' ? undefined : Number(formData.discountSurcharge),
+        policyDetails: formData.policyDetails,
       };
 
       await onSubmit(policyData);
@@ -385,6 +463,49 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
                     </InputAdornment>
                   ),
                 }}
+              />
+            </Grid>
+
+            {/* Insurance Type Specific Forms */}
+            {formData.insuranceType && (
+              <>
+                <Grid item xs={12}>
+                  <Divider />
+                </Grid>
+                
+                <Grid item xs={12}>
+                  {formData.insuranceType === 'OC' && (
+                    <OCInsuranceForm
+                      policyDetails={formData.policyDetails}
+                      onChange={handlePolicyDetailsChange}
+                      errors={errors}
+                    />
+                  )}
+                  {formData.insuranceType === 'AC' && (
+                    <ACInsuranceForm
+                      policyDetails={formData.policyDetails}
+                      onChange={handlePolicyDetailsChange}
+                      errors={errors}
+                    />
+                  )}
+                  {formData.insuranceType === 'NNW' && (
+                    <NNWInsuranceForm
+                      policyDetails={formData.policyDetails}
+                      onChange={handlePolicyDetailsChange}
+                      errors={errors}
+                    />
+                  )}
+                </Grid>
+              </>
+            )}
+
+            {/* Premium Calculation Display */}
+            <Grid item xs={12}>
+              <PremiumCalculationDisplay
+                insuranceType={formData.insuranceType as 'OC' | 'AC' | 'NNW'}
+                vehicleId={formData.vehicleId}
+                policyDate={formData.startDate}
+                discountSurcharge={formData.discountSurcharge === '' ? 0 : Number(formData.discountSurcharge)}
               />
             </Grid>
 
