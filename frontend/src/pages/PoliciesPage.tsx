@@ -1,33 +1,215 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
+  Button,
+  Alert,
+  Snackbar,
 } from '@mui/material';
-import { Policy } from '@mui/icons-material';
+import { Add } from '@mui/icons-material';
+import { Policy, CreatePolicyRequest, UpdatePolicyRequest, Client, Vehicle } from '../types/policy';
+import { policyService } from '../services/policyService';
+import PolicyList from '../components/policies/PolicyList';
+import PolicyForm from '../components/policies/PolicyForm';
+import CancelPolicyDialog from '../components/policies/CancelPolicyDialog';
 
 const PoliciesPage: React.FC = () => {
+  const [policies, setPolicies] = useState<Policy[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [formOpen, setFormOpen] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
+  const [formLoading, setFormLoading] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [notification, setNotification] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error' | 'info';
+  }>({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
+
+  // Load initial data
+  useEffect(() => {
+    loadData();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [policiesData, clientsData, vehiclesData] = await Promise.all([
+        policyService.getAllPolicies(),
+        policyService.getAllClients(),
+        policyService.getAllVehicles(),
+      ]);
+      
+      setPolicies(policiesData);
+      setClients(clientsData);
+      setVehicles(vehiclesData);
+    } catch (error: any) {
+      showNotification('Failed to load data: ' + (error.response?.data?.message || error.message), 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const showNotification = (message: string, severity: 'success' | 'error' | 'info') => {
+    setNotification({ open: true, message, severity });
+  };
+
+  const handleCreatePolicy = () => {
+    setSelectedPolicy(null);
+    setFormOpen(true);
+  };
+
+  const handleEditPolicy = (policy: Policy) => {
+    setSelectedPolicy(policy);
+    setFormOpen(true);
+  };
+
+  const handleCancelPolicy = (policy: Policy) => {
+    setSelectedPolicy(policy);
+    setCancelDialogOpen(true);
+  };
+
+  const handleGeneratePdf = async (policy: Policy) => {
+    try {
+      const pdfBlob = await policyService.generatePolicyPdf(policy.id);
+      
+      // Create download link
+      const url = window.URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `policy_${policy.policyNumber}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      showNotification('PDF generated successfully', 'success');
+    } catch (error: any) {
+      showNotification('Failed to generate PDF: ' + (error.response?.data?.message || error.message), 'error');
+    }
+  };
+
+  const handleFormSubmit = async (policyData: CreatePolicyRequest | UpdatePolicyRequest) => {
+    try {
+      setFormLoading(true);
+      
+      if (selectedPolicy) {
+        // Update existing policy
+        const updatedPolicy = await policyService.updatePolicy(selectedPolicy.id, policyData as UpdatePolicyRequest);
+        setPolicies(prev => prev.map(p => p.id === selectedPolicy.id ? updatedPolicy : p));
+        showNotification('Policy updated successfully', 'success');
+      } else {
+        // Create new policy
+        const newPolicy = await policyService.createPolicy(policyData as CreatePolicyRequest);
+        setPolicies(prev => [...prev, newPolicy]);
+        showNotification('Policy created successfully', 'success');
+      }
+    } catch (error: any) {
+      throw error; // Re-throw to be handled by the form component
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleCancelConfirm = async () => {
+    if (!selectedPolicy) return;
+    
+    try {
+      setCancelLoading(true);
+      await policyService.cancelPolicy(selectedPolicy.id);
+      
+      // Update the policy status in the local state
+      setPolicies(prev => prev.map(p => 
+        p.id === selectedPolicy.id 
+          ? { ...p, status: 'CANCELED' as const }
+          : p
+      ));
+      
+      showNotification('Policy canceled successfully', 'success');
+    } catch (error: any) {
+      showNotification('Failed to cancel policy: ' + (error.response?.data?.message || error.message), 'error');
+    } finally {
+      setCancelLoading(false);
+    }
+  };
+
+  const handleCloseNotification = () => {
+    setNotification(prev => ({ ...prev, open: false }));
+  };
+
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Policy Management
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        Create, edit, and manage insurance policies.
-      </Typography>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box>
+          <Typography variant="h4" gutterBottom>
+            Policy Management
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Create, edit, and manage insurance policies.
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={handleCreatePolicy}
+          disabled={loading}
+        >
+          Create Policy
+        </Button>
+      </Box>
 
-      <Card>
-        <CardContent sx={{ textAlign: 'center', py: 8 }}>
-          <Policy sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
-          <Typography variant="h6" color="text.secondary">
-            Policy management interface will be implemented in a future task
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            This will include policy creation, editing, and search functionality
-          </Typography>
-        </CardContent>
-      </Card>
+      {/* Policy List */}
+      <PolicyList
+        policies={policies}
+        loading={loading}
+        onEditPolicy={handleEditPolicy}
+        onCancelPolicy={handleCancelPolicy}
+        onGeneratePdf={handleGeneratePdf}
+      />
+
+      {/* Policy Form Dialog */}
+      <PolicyForm
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        onSubmit={handleFormSubmit}
+        policy={selectedPolicy}
+        clients={clients}
+        vehicles={vehicles}
+        loading={formLoading}
+      />
+
+      {/* Cancel Policy Dialog */}
+      <CancelPolicyDialog
+        open={cancelDialogOpen}
+        onClose={() => setCancelDialogOpen(false)}
+        onConfirm={handleCancelConfirm}
+        policy={selectedPolicy}
+        loading={cancelLoading}
+      />
+
+      {/* Notification Snackbar */}
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={6000}
+        onClose={handleCloseNotification}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={handleCloseNotification} 
+          severity={notification.severity}
+          sx={{ width: '100%' }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
