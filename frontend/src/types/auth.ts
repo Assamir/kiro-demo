@@ -6,6 +6,21 @@ export interface User {
   role: 'ADMIN' | 'OPERATOR';
 }
 
+export interface CreateUserRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  role: 'ADMIN' | 'OPERATOR';
+}
+
+export interface UpdateUserRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: 'ADMIN' | 'OPERATOR';
+}
+
 export interface LoginRequest {
   email: string;
   password: string;
