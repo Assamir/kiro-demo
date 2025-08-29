@@ -5,6 +5,8 @@ import com.insurance.backoffice.infrastructure.repository.UserRepository;
 import com.insurance.backoffice.infrastructure.security.JwtUtil;
 import com.insurance.backoffice.interfaces.dto.LoginRequest;
 import com.insurance.backoffice.interfaces.dto.LoginResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +27,7 @@ import java.util.Collections;
 @Service
 public class AuthenticationService {
     
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationService.class);
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
@@ -51,6 +54,7 @@ public class AuthenticationService {
      */
     public LoginResponse authenticate(LoginRequest loginRequest) {
         try {
+            logger.debug("Authentication attempt for email: {}", loginRequest.email());
             // Authenticate user credentials
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -58,6 +62,7 @@ public class AuthenticationService {
                     loginRequest.password()
                 )
             );
+            logger.debug("Authentication successful for email: {}", loginRequest.email());
             
             // Load user details and generate token
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -67,6 +72,7 @@ public class AuthenticationService {
             return createLoginResponse(token, user);
             
         } catch (Exception e) {
+            logger.warn("Authentication failed for email: {} - {}", loginRequest.email(), e.getMessage());
             throw new BadCredentialsException("Invalid email or password", e);
         }
     }

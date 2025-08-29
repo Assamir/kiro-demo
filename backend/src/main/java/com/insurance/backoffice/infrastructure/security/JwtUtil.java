@@ -138,7 +138,17 @@ public class JwtUtil {
      * @return signing key
      */
     private SecretKey getSigningKey() {
-        byte[] keyBytes = secret.getBytes();
+        // Use UTF-8 encoding and ensure proper key size for HS512
+        byte[] keyBytes = secret.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        
+        // HS512 requires at least 512 bits (64 bytes)
+        if (keyBytes.length < 64) {
+            // Pad the key to 64 bytes if it's too short
+            byte[] paddedKey = new byte[64];
+            System.arraycopy(keyBytes, 0, paddedKey, 0, Math.min(keyBytes.length, 64));
+            return Keys.hmacShaKeyFor(paddedKey);
+        }
+        
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }

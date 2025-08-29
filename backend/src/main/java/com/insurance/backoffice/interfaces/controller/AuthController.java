@@ -91,10 +91,13 @@ public class AuthController {
         }
     )
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
+        System.out.println("LOGIN ATTEMPT: " + loginRequest.email());
         try {
             LoginResponse response = authenticationService.authenticate(loginRequest);
+            System.out.println("LOGIN SUCCESS: " + loginRequest.email());
             return ResponseEntity.ok(response);
         } catch (BadCredentialsException e) {
+            System.out.println("LOGIN FAILED: " + loginRequest.email() + " - " + e.getMessage());
             return ResponseEntity.status(401).build();
         }
     }
