@@ -106,6 +106,18 @@ The system uses email-based authentication with the following test accounts:
 
 **Note**: All test users use the same password (`admin123`) for development purposes. In production, users should be required to change their passwords on first login.
 
+**Current Status**: 
+- ✅ Backend API is running successfully on http://localhost:8080
+- ✅ Frontend is running successfully on http://localhost:3000  
+- ✅ Database is properly configured with sample users
+- ❌ **Login Issue**: Authentication is currently failing with 401 Unauthorized
+- 🔧 **Troubleshooting**: The BCrypt password hashing appears to be configured correctly, but authentication is not working. This needs further investigation.
+
+**For Testing**: 
+- API Health Check: http://localhost:8080/actuator/health
+- Swagger Documentation: http://localhost:8080/swagger-ui.html
+- All database migrations have been applied successfully (V1-V16)
+
 ### Local Development
 
 1. Start the database:
