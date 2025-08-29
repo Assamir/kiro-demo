@@ -25,7 +25,7 @@ ALTER TABLE vehicles ADD CONSTRAINT chk_vehicles_year_valid
 ALTER TABLE vehicles ADD CONSTRAINT chk_vehicles_vin_length 
     CHECK (LENGTH(vin) = 17 AND vin ~ '^[A-HJ-NPR-Z0-9]+$');
 ALTER TABLE vehicles ADD CONSTRAINT chk_vehicles_engine_capacity_positive 
-    CHECK (engine_capacity > 0);
+    CHECK (engine_capacity >= 0);
 ALTER TABLE vehicles ADD CONSTRAINT chk_vehicles_power_positive 
     CHECK (power > 0);
 ALTER TABLE vehicles ADD CONSTRAINT chk_vehicles_registration_date_valid 
@@ -39,6 +39,6 @@ ALTER TABLE vehicles ADD CONSTRAINT chk_vehicles_model_not_empty
 COMMENT ON TABLE vehicles IS 'Vehicle technical and registration information';
 COMMENT ON COLUMN vehicles.vin IS 'Vehicle Identification Number (17 characters, excluding I, O, Q)';
 COMMENT ON COLUMN vehicles.registration_number IS 'Official vehicle registration number';
-COMMENT ON COLUMN vehicles.engine_capacity IS 'Engine displacement in cubic centimeters (cc)';
+COMMENT ON COLUMN vehicles.engine_capacity IS 'Engine displacement in cubic centimeters (cc), 0 for electric vehicles';
 COMMENT ON COLUMN vehicles.power IS 'Engine power in kilowatts (kW)';
 COMMENT ON COLUMN vehicles.first_registration_date IS 'Date when vehicle was first registered';

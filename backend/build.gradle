@@ -65,3 +65,9 @@ test {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+// Disable plain JAR generation (we only need the Spring Boot executable JAR)
+jar {
+    enabled = false
+    archiveClassifier = ''
+}

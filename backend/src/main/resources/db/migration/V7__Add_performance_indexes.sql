@@ -12,8 +12,8 @@ CREATE INDEX idx_policies_client_type ON policies(client_id, insurance_type);
 CREATE INDEX idx_policies_client_dates ON policies(client_id, start_date, end_date);
 
 -- Indexes for rating table lookups (performance critical)
-CREATE INDEX idx_rating_tables_lookup ON rating_tables(insurance_type, rating_key) 
-    WHERE valid_to IS NULL OR valid_to >= CURRENT_DATE;
+CREATE INDEX idx_rating_tables_lookup ON rating_tables(insurance_type, rating_key);
+CREATE INDEX idx_rating_tables_validity ON rating_tables(valid_from, valid_to);
 
 -- Additional constraints for business rules
 ALTER TABLE policies ADD CONSTRAINT chk_policies_coverage_period_reasonable 
@@ -41,8 +41,8 @@ CREATE TRIGGER update_users_updated_at
 COMMENT ON CONSTRAINT chk_policies_coverage_period_reasonable ON policies IS 
     'Ensures policy coverage period does not exceed 5 years, which is reasonable for car insurance';
 
-COMMENT ON INDEX idx_policies_client_status ON policies IS 
+COMMENT ON INDEX idx_policies_client_status IS 
     'Optimizes queries for finding client policies by status (common in policy management)';
 
-COMMENT ON INDEX idx_rating_tables_lookup ON rating_tables IS 
-    'Optimizes rating table lookups by filtering only current/future valid entries';
+COMMENT ON INDEX idx_rating_tables_lookup IS 
+    'Optimizes rating table lookups for performance critical operations';

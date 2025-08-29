@@ -3,16 +3,18 @@ FROM gradle:8.5-jdk17 AS build
 
 WORKDIR /app
 
-# Copy Gradle files
+# Copy Gradle files from root
 COPY build.gradle ./
 COPY gradle gradle
 COPY gradlew ./
+COPY settings.gradle ./
 
-# Copy source code
-COPY src src
+# Copy backend-specific files
+COPY backend/build.gradle ./backend/
+COPY backend/src ./backend/src
 
 # Build the application
-RUN ./gradlew build -x test --no-daemon
+RUN ./gradlew :backend:build -x test --no-daemon
 
 # Runtime stage
 FROM eclipse-temurin:17-jre
@@ -22,8 +24,8 @@ WORKDIR /app
 # Create non-root user
 RUN groupadd -r insurance && useradd -r -g insurance insurance
 
-# Copy the built JAR file
-COPY --from=build /app/build/libs/*.jar app.jar
+# Copy the built JAR file (Spring Boot executable jar)
+COPY --from=build /app/backend/build/libs/*.jar app.jar
 
 # Change ownership to non-root user
 RUN chown -R insurance:insurance /app
