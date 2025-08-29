@@ -1,16 +1,16 @@
-# Frontend Dockerfile placeholder
-# This will be updated when implementing React components
-
+# Development Dockerfile for React application
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Create a placeholder index.html for now
-RUN echo '<!DOCTYPE html><html><head><title>Insurance Backoffice</title></head><body><h1>Frontend Coming Soon</h1><p>React frontend will be implemented in later tasks.</p></body></html>' > index.html
+# Install serve to serve the built application
+RUN npm install -g serve
 
-# Simple HTTP server for placeholder
-RUN npm install -g http-server
+# Copy the pre-built application
+COPY build ./build
 
+# Expose port
 EXPOSE 3000
 
-CMD ["http-server", "-p", "3000", "-a", "0.0.0.0"]
+# Serve the built application
+CMD ["serve", "-s", "build", "-l", "3000"]

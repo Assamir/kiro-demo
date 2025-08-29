@@ -65,8 +65,46 @@ insurance-backoffice-system/
 3. Access the application:
    - Backend API: http://localhost:8080
    - Swagger UI: http://localhost:8080/swagger-ui.html
-   - Frontend: http://localhost:3000 (placeholder)
+   - Frontend: http://localhost:3000
    - Database: localhost:5432
+
+## User Credentials
+
+The system uses email-based authentication with the following test accounts:
+
+### ADMIN Role Users:
+- **John Administrator**
+  - Email: `admin@insurance.com`
+  - Password: `admin123`
+  - Role: ADMIN (can manage users and has full system access)
+
+- **Sarah Manager**
+  - Email: `sarah.manager@insurance.com`
+  - Password: `admin123`
+  - Role: ADMIN
+
+### OPERATOR Role Users:
+- **Mike Johnson**
+  - Email: `mike.johnson@insurance.com`
+  - Password: `admin123`
+  - Role: OPERATOR (can issue policies and manage day-to-day operations)
+
+- **Lisa Williams**
+  - Email: `lisa.williams@insurance.com`
+  - Password: `admin123`
+  - Role: OPERATOR
+
+- **David Brown**
+  - Email: `david.brown@insurance.com`
+  - Password: `admin123`
+  - Role: OPERATOR
+
+- **Emma Davis**
+  - Email: `emma.davis@insurance.com`
+  - Password: `admin123`
+  - Role: OPERATOR
+
+**Note**: All test users use the same password (`admin123`) for development purposes. In production, users should be required to change their passwords on first login.
 
 ### Local Development
 

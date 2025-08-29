@@ -1,0 +1,2 @@
+INSERT INTO users (first_name, last_name, email, password, role, created_at, updated_at) 
+VALUES ('Test', 'User', 'test@example.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2uheWG/igi.', 'ADMIN', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
