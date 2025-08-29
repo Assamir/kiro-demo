@@ -1,0 +1,82 @@
+# Staging Docker Compose configuration
+version: '3.8'
+
+services:
+  database:
+    image: postgres:15-alpine
+    container_name: insurance-postgres-staging
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-insurance_db_staging}
+      POSTGRES_USER: ${POSTGRES_USER:-insurance_user_staging}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      - postgres_data_staging:/var/lib/postgresql/data
+      - ./backend/src/main/resources/db/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - insurance-network-staging
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-insurance_user_staging} -d ${POSTGRES_DB:-insurance_db_staging}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: insurance-backend-staging
+    ports:
+      - "${BACKEND_PORT:-8081}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: staging
+      SPRING_DATASOURCE_URL: jdbc:postgresql://database:5432/${POSTGRES_DB:-insurance_db_staging}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-insurance_user_staging}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:-stagingSecretKeyForTestingOnly}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3001}
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - insurance-network-staging
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: insurance-frontend-staging
+    ports:
+      - "${FRONTEND_PORT:-3001}:80"
+    environment:
+      REACT_APP_API_URL: ${REACT_APP_API_URL:-http://localhost:8081/api}
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - insurance-network-staging
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  postgres_data_staging:
+    driver: local
+
+networks:
+  insurance-network-staging:
+    driver: bridge

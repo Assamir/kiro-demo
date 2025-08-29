@@ -1,0 +1,50 @@
+# Production-optimized multi-stage build for Spring Boot application
+FROM gradle:8.5-jdk17-alpine AS build
+
+WORKDIR /app
+
+# Copy Gradle files first for better layer caching
+COPY build.gradle settings.gradle gradlew ./
+COPY gradle gradle/
+
+# Download dependencies (cached layer)
+RUN ./gradlew dependencies --no-daemon
+
+# Copy source code
+COPY src src/
+
+# Build the application with optimizations
+RUN ./gradlew build -x test --no-daemon --parallel \
+    && rm -rf ~/.gradle/caches/
+
+# Production runtime stage with minimal JRE
+FROM eclipse-temurin:17-jre-alpine
+
+# Install curl for health checks and create non-root user
+RUN apk add --no-cache curl \
+    && addgroup -g 1001 -S insurance \
+    && adduser -S insurance -u 1001 -G insurance
+
+WORKDIR /app
+
+# Copy the built JAR file
+COPY --from=build /app/build/libs/*.jar app.jar
+
+# Create logs directory
+RUN mkdir -p /app/logs && chown -R insurance:insurance /app
+
+# Switch to non-root user
+USER insurance
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
+
+# JVM optimizations for production
+ENV JAVA_OPTS="-Xms512m -Xmx1024m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
+
+# Run the application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

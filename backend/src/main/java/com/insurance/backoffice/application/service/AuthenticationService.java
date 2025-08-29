@@ -128,9 +128,7 @@ public class AuthenticationService {
     private LoginResponse createLoginResponse(String token, User user) {
         return LoginResponse.of(
             token,
-            user.getEmail(),
-            user.getFullName(),
-            user.getRole(),
+            user,
             jwtExpiration
         );
     }
