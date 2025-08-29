@@ -1,5 +1,6 @@
 package com.insurance.backoffice.interfaces.dto;
 
+import com.insurance.backoffice.domain.User;
 import com.insurance.backoffice.domain.UserRole;
 
 /**
@@ -8,24 +9,49 @@ import com.insurance.backoffice.domain.UserRole;
  */
 public record LoginResponse(
     String token,
-    String email,
-    String fullName,
-    UserRole role,
+    UserInfo user,
     long expiresIn
 ) {
+    /**
+     * User information nested record.
+     */
+    public record UserInfo(
+        Long id,
+        String firstName,
+        String lastName,
+        String email,
+        String role
+    ) {
+        public static UserInfo fromUser(User user) {
+            return new UserInfo(
+                user.getId(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                user.getRole().name()
+            );
+        }
+    }
+
     /**
      * Creates a login response with token expiration time.
      * Clean Code: Factory method with clear purpose.
      * 
      * @param token JWT token
-     * @param email user email
-     * @param fullName user full name
-     * @param role user role
+     * @param user user information
      * @param expirationMillis token expiration in milliseconds
      * @return LoginResponse instance
      */
-    public static LoginResponse of(String token, String email, String fullName, 
-                                 UserRole role, long expirationMillis) {
-        return new LoginResponse(token, email, fullName, role, expirationMillis);
+    public static LoginResponse of(String token, User user, long expirationMillis) {
+        return new LoginResponse(token, UserInfo.fromUser(user), expirationMillis);
+    }
+
+    // Convenience methods for backward compatibility
+    public String getToken() {
+        return token;
+    }
+
+    public UserInfo getUser() {
+        return user;
     }
 }

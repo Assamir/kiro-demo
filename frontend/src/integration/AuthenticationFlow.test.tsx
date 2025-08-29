@@ -7,15 +7,15 @@ import App from '../App';
 import theme from '../theme/theme';
 
 // Mock the auth service
-const mockAuthService = {
-  login: jest.fn(),
-  getCurrentUser: jest.fn(),
-  logout: jest.fn(),
-};
-
 jest.mock('../services/authService', () => ({
-  authService: mockAuthService,
+  authService: {
+    login: jest.fn(),
+    getCurrentUser: jest.fn(),
+    logout: jest.fn(),
+  },
 }));
+
+import { authService } from '../services/authService';
 
 const renderApp = () => {
   return render(
@@ -37,7 +37,7 @@ describe('Authentication Flow Integration', () => {
     const user = userEvent.setup();
     
     // Mock successful login
-    mockAuthService.login.mockResolvedValue({
+    (authService.login as jest.Mock).mockResolvedValue({
       token: 'test-token',
       user: {
         id: 1,
@@ -49,7 +49,7 @@ describe('Authentication Flow Integration', () => {
     });
     
     // Mock getCurrentUser for initial load
-    mockAuthService.getCurrentUser.mockRejectedValue(new Error('No token'));
+    (authService.getCurrentUser as jest.Mock).mockRejectedValue(new Error('No token'));
     
     renderApp();
     
@@ -68,7 +68,7 @@ describe('Authentication Flow Integration', () => {
     
     // Should call login service
     await waitFor(() => {
-      expect(mockAuthService.login).toHaveBeenCalledWith({
+      expect(authService.login).toHaveBeenCalledWith({
         email: 'john@example.com',
         password: 'password123',
       });

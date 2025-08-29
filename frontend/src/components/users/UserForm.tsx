@@ -4,7 +4,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
   Button,
   FormControl,
   InputLabel,
@@ -14,17 +13,19 @@ import {
   Typography,
   Alert,
   InputAdornment,
-  IconButton,
 } from '@mui/material';
 import {
-  Visibility,
-  VisibilityOff,
   Person,
   Email,
   Lock,
   AdminPanelSettings,
 } from '@mui/icons-material';
 import { User, CreateUserRequest, UpdateUserRequest } from '../../types/auth';
+import { useFormValidation } from '../../hooks/useFormValidation';
+import { useNotification } from '../../contexts/NotificationContext';
+import EnhancedTextField from '../common/EnhancedTextField';
+import RetryButton from '../common/RetryButton';
+import { ValidationSchema, validateEmail, validatePassword, validateRequired } from '../../utils/validators';
 
 interface UserFormProps {
   open: boolean;
@@ -58,147 +59,132 @@ const UserForm: React.FC<UserFormProps> = ({
   loading = false,
 }) => {
   const isEditing = Boolean(user);
-  const [showPassword, setShowPassword] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  
-  const [formData, setFormData] = useState<FormData>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    role: 'OPERATOR',
+  const { showError, showSuccess } = useNotification();
+
+  // Define validation schema
+  const validationSchema: ValidationSchema<FormData> = {
+    firstName: {
+      required: true,
+      rules: [
+        {
+          validator: (value: string) => value.trim().length >= 2,
+          message: 'First name must be at least 2 characters',
+        },
+      ],
+    },
+    lastName: {
+      required: true,
+      rules: [
+        {
+          validator: (value: string) => value.trim().length >= 2,
+          message: 'Last name must be at least 2 characters',
+        },
+      ],
+    },
+    email: {
+      required: true,
+      customValidator: (value: string) => validateEmail(value),
+    },
+    password: {
+      required: !isEditing, // Only required for new users
+      customValidator: (value: string) => {
+        if (isEditing && !value) return { isValid: true }; // Skip validation for empty password in edit mode
+        return validatePassword(value);
+      },
+    },
+    role: {
+      required: true,
+      customValidator: (value: string) => validateRequired(value, 'Role'),
+    },
+  };
+
+  // Initialize form data
+  const initialValues: FormData = {
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    email: user?.email || '',
+    password: '', // Never populate password for editing
+    role: user?.role || 'OPERATOR',
+  };
+
+  // Use enhanced form validation
+  const {
+    values,
+    errors,
+    touched,
+    isSubmitting,
+    isValid,
+    handleChange,
+    handleBlur,
+    handleSubmit,
+    reset,
+    setError,
+  } = useFormValidation({
+    initialValues,
+    validationSchema,
+    validateOnChange: true,
+    validateOnBlur: true,
+    onSubmit: async (formData) => {
+      setSubmitError(null);
+      try {
+        if (isEditing) {
+          const updateData: UpdateUserRequest = {
+            firstName: formData.firstName.trim(),
+            lastName: formData.lastName.trim(),
+            email: formData.email.trim(),
+            role: formData.role,
+          };
+          await onSubmit(updateData);
+          showSuccess('User updated successfully');
+        } else {
+          const createData: CreateUserRequest = {
+            firstName: formData.firstName.trim(),
+            lastName: formData.lastName.trim(),
+            email: formData.email.trim(),
+            password: formData.password,
+            role: formData.role,
+          };
+          await onSubmit(createData);
+          showSuccess('User created successfully');
+        }
+        onClose();
+      } catch (error: any) {
+        const errorMessage = error?.message || 'An error occurred while saving the user';
+        setSubmitError(errorMessage);
+        showError(errorMessage);
+        
+        // Set field-specific errors if available
+        if (error?.details?.fieldErrors) {
+          Object.entries(error.details.fieldErrors).forEach(([field, message]) => {
+            setError(field as keyof FormData, message as string);
+          });
+        }
+      }
+    },
   });
 
-  const [errors, setErrors] = useState<FormErrors>({});
-
-  // Initialize form data when user prop changes
+  // Reset form when dialog opens/closes or user changes
   useEffect(() => {
-    if (user) {
-      setFormData({
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        password: '', // Don't populate password for editing
-        role: user.role,
-      });
-    } else {
-      setFormData({
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: '',
-        role: 'OPERATOR',
-      });
+    if (open) {
+      reset(initialValues);
+      setSubmitError(null);
     }
-    setErrors({});
-    setSubmitError(null);
-  }, [user, open]);
-
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    // First name validation
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
-    } else if (formData.firstName.trim().length < 2) {
-      newErrors.firstName = 'First name must be at least 2 characters';
-    }
-
-    // Last name validation
-    if (!formData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
-    } else if (formData.lastName.trim().length < 2) {
-      newErrors.lastName = 'Last name must be at least 2 characters';
-    }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!emailRegex.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email address';
-    }
-
-    // Password validation (only for new users)
-    if (!isEditing) {
-      if (!formData.password) {
-        newErrors.password = 'Password is required';
-      } else if (formData.password.length < 8) {
-        newErrors.password = 'Password must be at least 8 characters';
-      } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-        newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
-      }
-    }
-
-    // Role validation
-    if (!formData.role) {
-      newErrors.role = 'Role is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleInputChange = (field: keyof FormData) => (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const value = event.target.value;
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
-    // Clear error for this field when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
-    }
-  };
+  }, [user, open, reset]);
 
   const handleRoleChange = (event: any) => {
     const value = event.target.value as 'ADMIN' | 'OPERATOR';
-    setFormData(prev => ({ ...prev, role: value }));
-    
-    if (errors.role) {
-      setErrors(prev => ({ ...prev, role: undefined }));
-    }
-  };
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setSubmitError(null);
-
-    if (!validateForm()) {
-      return;
-    }
-
-    try {
-      if (isEditing) {
-        // For editing, don't include password
-        const updateData: UpdateUserRequest = {
-          firstName: formData.firstName.trim(),
-          lastName: formData.lastName.trim(),
-          email: formData.email.trim(),
-          role: formData.role,
-        };
-        await onSubmit(updateData);
-      } else {
-        // For creating, include password
-        const createData: CreateUserRequest = {
-          firstName: formData.firstName.trim(),
-          lastName: formData.lastName.trim(),
-          email: formData.email.trim(),
-          password: formData.password,
-          role: formData.role,
-        };
-        await onSubmit(createData);
-      }
-      onClose();
-    } catch (error: any) {
-      setSubmitError(error.response?.data?.message || 'An error occurred while saving the user');
-    }
+    handleChange('role')({ target: { value } } as any);
   };
 
   const handleClose = () => {
-    if (!loading) {
+    if (!loading && !isSubmitting) {
       onClose();
     }
+  };
+
+  const handleRetrySubmit = async () => {
+    await handleSubmit({} as React.FormEvent);
   };
 
   return (
@@ -223,21 +209,36 @@ const UserForm: React.FC<UserFormProps> = ({
       <form onSubmit={handleSubmit}>
         <DialogContent sx={{ pt: 2 }}>
           {submitError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert 
+              severity="error" 
+              sx={{ mb: 2 }}
+              action={
+                <RetryButton
+                  onRetry={handleRetrySubmit}
+                  size="small"
+                  variant="text"
+                  color="inherit"
+                >
+                  Retry
+                </RetryButton>
+              }
+            >
               {submitError}
             </Alert>
           )}
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {/* First Name */}
-            <TextField
+            <EnhancedTextField
               label="First Name"
-              value={formData.firstName}
-              onChange={handleInputChange('firstName')}
-              error={Boolean(errors.firstName)}
-              helperText={errors.firstName}
+              value={values.firstName}
+              onChange={handleChange('firstName')}
+              onBlur={handleBlur('firstName')}
+              validationState={touched.firstName ? (errors.firstName ? 'error' : 'success') : null}
+              validationMessage={touched.firstName ? errors.firstName : undefined}
               required
               fullWidth
+              loading={isSubmitting}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -245,17 +246,20 @@ const UserForm: React.FC<UserFormProps> = ({
                   </InputAdornment>
                 ),
               }}
+              helpText="Enter the user's first name (minimum 2 characters)"
             />
 
             {/* Last Name */}
-            <TextField
+            <EnhancedTextField
               label="Last Name"
-              value={formData.lastName}
-              onChange={handleInputChange('lastName')}
-              error={Boolean(errors.lastName)}
-              helperText={errors.lastName}
+              value={values.lastName}
+              onChange={handleChange('lastName')}
+              onBlur={handleBlur('lastName')}
+              validationState={touched.lastName ? (errors.lastName ? 'error' : 'success') : null}
+              validationMessage={touched.lastName ? errors.lastName : undefined}
               required
               fullWidth
+              loading={isSubmitting}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -263,18 +267,21 @@ const UserForm: React.FC<UserFormProps> = ({
                   </InputAdornment>
                 ),
               }}
+              helpText="Enter the user's last name (minimum 2 characters)"
             />
 
             {/* Email */}
-            <TextField
+            <EnhancedTextField
               label="Email"
               type="email"
-              value={formData.email}
-              onChange={handleInputChange('email')}
-              error={Boolean(errors.email)}
-              helperText={errors.email}
+              value={values.email}
+              onChange={handleChange('email')}
+              onBlur={handleBlur('email')}
+              validationState={touched.email ? (errors.email ? 'error' : 'success') : null}
+              validationMessage={touched.email ? errors.email : undefined}
               required
               fullWidth
+              loading={isSubmitting}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -282,47 +289,43 @@ const UserForm: React.FC<UserFormProps> = ({
                   </InputAdornment>
                 ),
               }}
+              helpText="Enter a valid email address for system access"
             />
 
             {/* Password (only for new users) */}
             {!isEditing && (
-              <TextField
+              <EnhancedTextField
                 label="Password"
-                type={showPassword ? 'text' : 'password'}
-                value={formData.password}
-                onChange={handleInputChange('password')}
-                error={Boolean(errors.password)}
-                helperText={errors.password}
+                isPassword
+                value={values.password}
+                onChange={handleChange('password')}
+                onBlur={handleBlur('password')}
+                validationState={touched.password ? (errors.password ? 'error' : 'success') : null}
+                validationMessage={touched.password ? errors.password : undefined}
                 required
                 fullWidth
+                loading={isSubmitting}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
                       <Lock />
                     </InputAdornment>
                   ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
                 }}
+                helpText="Password must be at least 8 characters with uppercase, lowercase, and number"
               />
             )}
 
             {/* Role */}
-            <FormControl fullWidth error={Boolean(errors.role)}>
+            <FormControl fullWidth error={Boolean(touched.role && errors.role)}>
               <InputLabel id="user-role-label">Role</InputLabel>
               <Select
                 labelId="user-role-label"
-                value={formData.role}
+                value={values.role}
                 label="Role"
                 onChange={handleRoleChange}
+                onBlur={handleBlur('role')}
+                disabled={isSubmitting}
                 startAdornment={
                   <InputAdornment position="start">
                     <AdminPanelSettings />
@@ -332,7 +335,7 @@ const UserForm: React.FC<UserFormProps> = ({
                 <MenuItem value="OPERATOR">Operator</MenuItem>
                 <MenuItem value="ADMIN">Admin</MenuItem>
               </Select>
-              {errors.role && (
+              {touched.role && errors.role && (
                 <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 2 }}>
                   {errors.role}
                 </Typography>
@@ -344,7 +347,7 @@ const UserForm: React.FC<UserFormProps> = ({
         <DialogActions sx={{ p: 3, pt: 2 }}>
           <Button 
             onClick={handleClose} 
-            disabled={loading}
+            disabled={loading || isSubmitting}
             color="inherit"
           >
             Cancel
@@ -352,10 +355,10 @@ const UserForm: React.FC<UserFormProps> = ({
           <Button 
             type="submit" 
             variant="contained" 
-            disabled={loading}
+            disabled={loading || isSubmitting || !isValid}
             sx={{ minWidth: 100 }}
           >
-            {loading ? 'Saving...' : (isEditing ? 'Update' : 'Create')}
+            {isSubmitting ? 'Saving...' : (isEditing ? 'Update' : 'Create')}
           </Button>
         </DialogActions>
       </form>
