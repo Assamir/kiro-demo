@@ -7,7 +7,12 @@ export interface Policy {
   startDate: string;
   endDate: string;
   premium: number;
+  discountSurcharge?: number;
+  amountGuaranteed?: number;
+  coverageArea?: string;
   status: 'ACTIVE' | 'CANCELED' | 'EXPIRED';
+  createdAt: string;
+  updatedAt: string;
   policyDetails?: PolicyDetails;
 }
 
@@ -37,13 +42,11 @@ export interface CreatePolicyRequest {
 }
 
 export interface UpdatePolicyRequest {
-  clientId: number;
-  vehicleId: number;
-  insuranceType: 'OC' | 'AC' | 'NNW';
   startDate: string;
   endDate: string;
   discountSurcharge?: number;
-  policyDetails?: PolicyDetails;
+  amountGuaranteed?: number;
+  coverageArea?: string;
 }
 
 export interface PremiumBreakdown {

@@ -1,6 +1,5 @@
 package com.insurance.backoffice.interfaces.dto;
 
-import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
@@ -13,11 +12,14 @@ public record UpdatePolicyRequest(
         @NotNull(message = "Start date is required")
         LocalDate startDate,
 
-        @FutureOrPresent(message = "End date must be today or in the future")
         @NotNull(message = "End date is required")
         LocalDate endDate,
 
-        BigDecimal discountSurcharge
+        BigDecimal discountSurcharge,
+        
+        // Additional fields for policy coverage details
+        BigDecimal amountGuaranteed,
+        String coverageArea
 ) {
     public static Builder builder() {
         return new Builder();
@@ -27,6 +29,8 @@ public record UpdatePolicyRequest(
         private LocalDate startDate;
         private LocalDate endDate;
         private BigDecimal discountSurcharge;
+        private BigDecimal amountGuaranteed;
+        private String coverageArea;
 
         public Builder startDate(LocalDate startDate) {
             this.startDate = startDate;
@@ -43,8 +47,18 @@ public record UpdatePolicyRequest(
             return this;
         }
 
+        public Builder amountGuaranteed(BigDecimal amountGuaranteed) {
+            this.amountGuaranteed = amountGuaranteed;
+            return this;
+        }
+
+        public Builder coverageArea(String coverageArea) {
+            this.coverageArea = coverageArea;
+            return this;
+        }
+
         public UpdatePolicyRequest build() {
-            return new UpdatePolicyRequest(startDate, endDate, discountSurcharge);
+            return new UpdatePolicyRequest(startDate, endDate, discountSurcharge, amountGuaranteed, coverageArea);
         }
     }
 }

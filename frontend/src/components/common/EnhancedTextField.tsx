@@ -17,7 +17,7 @@ import {
   Warning,
 } from '@mui/icons-material';
 
-interface EnhancedTextFieldProps extends Omit<TextFieldProps, 'error' | 'helperText'> {
+interface EnhancedTextFieldProps extends Omit<TextFieldProps, 'error'> {
   // Enhanced validation props
   validationState?: 'success' | 'error' | 'warning' | 'info' | null;
   validationMessage?: string;

@@ -94,12 +94,14 @@ public class PolicyService {
      * @param startDate the new start date
      * @param endDate the new end date
      * @param discountSurcharge the new discount/surcharge amount
+     * @param amountGuaranteed the guaranteed amount for coverage
+     * @param coverageArea the coverage area
      * @return the updated policy
      * @throws EntityNotFoundException if policy not found
      * @throws IllegalArgumentException if update data is invalid
      */
     public Policy updatePolicy(Long policyId, LocalDate startDate, LocalDate endDate, 
-                              BigDecimal discountSurcharge) {
+                              BigDecimal discountSurcharge, BigDecimal amountGuaranteed, String coverageArea) {
         
         Policy existingPolicy = findPolicyById(policyId);
         
@@ -115,6 +117,14 @@ public class PolicyService {
         existingPolicy.setStartDate(startDate);
         existingPolicy.setEndDate(endDate);
         existingPolicy.setDiscountSurcharge(discountSurcharge != null ? discountSurcharge : BigDecimal.ZERO);
+        
+        // Update coverage details if provided
+        if (amountGuaranteed != null) {
+            existingPolicy.setAmountGuaranteed(amountGuaranteed);
+        }
+        if (coverageArea != null && !coverageArea.trim().isEmpty()) {
+            existingPolicy.setCoverageArea(coverageArea.trim());
+        }
         
         // Recalculate premium if dates changed
         BigDecimal newPremium = ratingService.calculatePremium(

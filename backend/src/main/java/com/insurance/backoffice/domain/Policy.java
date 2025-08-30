@@ -45,6 +45,12 @@ public class Policy {
     @Column(name = "discount_surcharge", precision = 10, scale = 2)
     private BigDecimal discountSurcharge;
     
+    @Column(name = "amount_guaranteed", precision = 12, scale = 2)
+    private BigDecimal amountGuaranteed;
+    
+    @Column(name = "coverage_area", length = 500)
+    private String coverageArea;
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", nullable = false)
     private Client client;
@@ -175,6 +181,8 @@ public class Policy {
     public InsuranceType getInsuranceType() { return insuranceType; }
     public BigDecimal getPremium() { return premium; }
     public BigDecimal getDiscountSurcharge() { return discountSurcharge; }
+    public BigDecimal getAmountGuaranteed() { return amountGuaranteed; }
+    public String getCoverageArea() { return coverageArea; }
     public Client getClient() { return client; }
     public Vehicle getVehicle() { return vehicle; }
     public PolicyDetails getPolicyDetails() { return policyDetails; }
@@ -188,6 +196,8 @@ public class Policy {
     public void setInsuranceType(InsuranceType insuranceType) { this.insuranceType = insuranceType; }
     public void setPremium(BigDecimal premium) { this.premium = premium; }
     public void setDiscountSurcharge(BigDecimal discountSurcharge) { this.discountSurcharge = discountSurcharge; }
+    public void setAmountGuaranteed(BigDecimal amountGuaranteed) { this.amountGuaranteed = amountGuaranteed; }
+    public void setCoverageArea(String coverageArea) { this.coverageArea = coverageArea; }
     public void setClient(Client client) { this.client = client; }
     public void setVehicle(Vehicle vehicle) { this.vehicle = vehicle; }
     

@@ -74,7 +74,7 @@ const RetryButton: React.FC<RetryButtonProps> = ({
       setAttemptCount(0);
       setLastError(null);
       showSuccess(successMessage);
-    } catch (error) {
+    } catch (error: any) {
       setLastError(error);
       
       const finalErrorMessage = error?.message || errorMessage;

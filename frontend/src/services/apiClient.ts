@@ -60,7 +60,8 @@ apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
     // Log successful requests in development
     if (process.env.NODE_ENV === 'development') {
-      const duration = new Date().getTime() - response.config.metadata?.startTime?.getTime();
+      const startTime = response.config.metadata?.startTime;
+      const duration = startTime ? new Date().getTime() - startTime.getTime() : 0;
       console.log(`✅ ${response.config.method?.toUpperCase()} ${response.config.url} - ${response.status} (${duration}ms)`);
     }
     return response;

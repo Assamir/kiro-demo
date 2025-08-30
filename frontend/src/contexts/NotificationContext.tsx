@@ -100,17 +100,15 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({ chil
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         key={notification?.id}
       >
-        {notification && (
-          <Alert
-            onClose={handleClose}
-            severity={notification.severity}
-            variant="filled"
-            sx={{ width: '100%' }}
-            action={notification.action}
-          >
-            {notification.message}
-          </Alert>
-        )}
+        <Alert
+          onClose={handleClose}
+          severity={notification?.severity || 'info'}
+          variant="filled"
+          sx={{ width: '100%' }}
+          action={notification?.action}
+        >
+          {notification?.message || ''}
+        </Alert>
       </Snackbar>
     </NotificationContext.Provider>
   );

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -368,7 +369,9 @@ public class PolicyController {
                 id,
                 request.startDate(),
                 request.endDate(),
-                request.discountSurcharge()
+                request.discountSurcharge(),
+                request.amountGuaranteed(),
+                request.coverageArea()
             );
             PolicyResponse policyResponse = mapToPolicyResponse(updatedPolicy);
             return ResponseEntity.ok(policyResponse);
@@ -518,6 +521,15 @@ public class PolicyController {
         @Schema(description = "Policy premium amount", example = "1200.00")
         BigDecimal premium,
         
+        @Schema(description = "Discount or surcharge amount", example = "100.00")
+        BigDecimal discountSurcharge,
+        
+        @Schema(description = "Amount guaranteed for coverage", example = "50000.00")
+        BigDecimal amountGuaranteed,
+        
+        @Schema(description = "Coverage area", example = "Europe")
+        String coverageArea,
+        
         @Schema(description = "Policy status", example = "ACTIVE")
         com.insurance.backoffice.domain.PolicyStatus status
     ) {}
@@ -619,6 +631,9 @@ public class PolicyController {
             policy.getStartDate(),
             policy.getEndDate(),
             policy.getPremium(),
+            policy.getDiscountSurcharge(),
+            policy.getAmountGuaranteed(),
+            policy.getCoverageArea(),
             policy.getStatus()
         );
     }

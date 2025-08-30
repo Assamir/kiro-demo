@@ -51,6 +51,8 @@ interface FormData {
   startDate: string;
   endDate: string;
   discountSurcharge: number | '';
+  amountGuaranteed: number | '';
+  coverageArea: string;
   policyDetails: PolicyDetails;
 }
 
@@ -61,9 +63,10 @@ interface FormErrors {
   startDate?: string;
   endDate?: string;
   discountSurcharge?: string;
+  amountGuaranteed?: string;
+  coverageArea?: string;
   // Policy details errors
   guaranteedSum?: string;
-  coverageArea?: string;
   acVariant?: string;
   sumInsured?: string;
   coverageScope?: string;
@@ -120,6 +123,20 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
         return validateNumber(value, 'Discount/Surcharge', -10000, 10000);
       },
     },
+    amountGuaranteed: {
+      required: false,
+      customValidator: (value: number | '') => {
+        if (value === '') return { isValid: true };
+        return validateNumber(value, 'Amount Guaranteed', 0, 10000000);
+      },
+    },
+    coverageArea: {
+      required: false,
+      customValidator: (value: string) => {
+        if (!value) return { isValid: true };
+        return { isValid: true };
+      },
+    },
   };
 
   // Initialize form data
@@ -135,7 +152,9 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
         insuranceType: policy.insuranceType,
         startDate: policy.startDate,
         endDate: policy.endDate,
-        discountSurcharge: '',
+        discountSurcharge: policy.discountSurcharge || '',
+        amountGuaranteed: policy.amountGuaranteed || '',
+        coverageArea: policy.coverageArea || '',
         policyDetails: policy.policyDetails || {},
       };
     } else {
@@ -151,6 +170,8 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
         startDate: today.toISOString().split('T')[0],
         endDate: nextYear.toISOString().split('T')[0],
         discountSurcharge: '',
+        amountGuaranteed: '',
+        coverageArea: '',
         policyDetails: {},
       };
     }
@@ -185,15 +206,29 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
       }
 
       try {
-        const policyData = {
-          clientId: Number(formData.clientId),
-          vehicleId: Number(formData.vehicleId),
-          insuranceType: formData.insuranceType as 'OC' | 'AC' | 'NNW',
-          startDate: formData.startDate,
-          endDate: formData.endDate,
-          discountSurcharge: formData.discountSurcharge === '' ? undefined : Number(formData.discountSurcharge),
-          policyDetails: formData.policyDetails,
-        };
+        let policyData: CreatePolicyRequest | UpdatePolicyRequest;
+        
+        if (isEditing) {
+          // For updates, only send the fields that can be updated
+          policyData = {
+            startDate: formData.startDate,
+            endDate: formData.endDate,
+            discountSurcharge: formData.discountSurcharge === '' ? undefined : Number(formData.discountSurcharge),
+            amountGuaranteed: formData.amountGuaranteed === '' ? undefined : Number(formData.amountGuaranteed),
+            coverageArea: formData.coverageArea || undefined,
+          };
+        } else {
+          // For creation, send all required fields
+          policyData = {
+            clientId: Number(formData.clientId),
+            vehicleId: Number(formData.vehicleId),
+            insuranceType: formData.insuranceType as 'OC' | 'AC' | 'NNW',
+            startDate: formData.startDate,
+            endDate: formData.endDate,
+            discountSurcharge: formData.discountSurcharge === '' ? undefined : Number(formData.discountSurcharge),
+            policyDetails: formData.policyDetails,
+          };
+        }
 
         await onSubmit(policyData);
         showSuccess(isEditing ? 'Policy updated successfully' : 'Policy created successfully');
@@ -444,8 +479,61 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
               />
             </Grid>
 
-            {/* Insurance Type Specific Forms */}
-            {values.insuranceType && (
+            {/* Amount Guaranteed */}
+            <Grid item xs={12} md={6}>
+              <EnhancedTextField
+                label="Amount Guaranteed"
+                type="number"
+                value={values.amountGuaranteed}
+                onChange={handleChange('amountGuaranteed')}
+                onBlur={handleBlur('amountGuaranteed')}
+                validationState={touched.amountGuaranteed ? (errors.amountGuaranteed ? 'error' : 'success') : null}
+                validationMessage={touched.amountGuaranteed ? errors.amountGuaranteed : undefined}
+                fullWidth
+                loading={isSubmitting}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Euro />
+                    </InputAdornment>
+                  ),
+                }}
+                helpText="Guaranteed coverage amount (optional)"
+              />
+            </Grid>
+
+            {/* Coverage Area */}
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth error={Boolean(touched.coverageArea && errors.coverageArea)}>
+                <InputLabel id="coverage-area-label">Coverage Area</InputLabel>
+                <Select
+                  labelId="coverage-area-label"
+                  value={values.coverageArea}
+                  label="Coverage Area"
+                  onChange={handleSelectChange('coverageArea')}
+                  onBlur={handleBlur('coverageArea')}
+                  disabled={isSubmitting}
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <Security />
+                    </InputAdornment>
+                  }
+                >
+                  <MenuItem value="">None</MenuItem>
+                  <MenuItem value="Poland">Poland</MenuItem>
+                  <MenuItem value="Europe">Europe</MenuItem>
+                  <MenuItem value="Worldwide">Worldwide</MenuItem>
+                </Select>
+                {touched.coverageArea && errors.coverageArea && (
+                  <Typography variant="caption" color="error" sx={{ mt: 0.5, ml: 2 }}>
+                    {errors.coverageArea}
+                  </Typography>
+                )}
+              </FormControl>
+            </Grid>
+
+            {/* Insurance Type Specific Forms - Only for new policies */}
+            {values.insuranceType && !isEditing && (
               <>
                 <Grid item xs={12}>
                   <Divider />
@@ -456,21 +544,21 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
                     <OCInsuranceForm
                       policyDetails={values.policyDetails}
                       onChange={handlePolicyDetailsChange}
-                      errors={errors}
+                      errors={{}}
                     />
                   )}
                   {values.insuranceType === 'AC' && (
                     <ACInsuranceForm
                       policyDetails={values.policyDetails}
                       onChange={handlePolicyDetailsChange}
-                      errors={errors}
+                      errors={{}}
                     />
                   )}
                   {values.insuranceType === 'NNW' && (
                     <NNWInsuranceForm
                       policyDetails={values.policyDetails}
                       onChange={handlePolicyDetailsChange}
-                      errors={errors}
+                      errors={{}}
                     />
                   )}
                 </Grid>
