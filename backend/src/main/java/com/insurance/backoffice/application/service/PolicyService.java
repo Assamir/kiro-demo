@@ -108,13 +108,13 @@ public class PolicyService {
             throw new IllegalStateException("Cannot update a canceled policy");
         }
         
-        // Validate dates
-        validatePolicyDates(startDate, endDate);
+        // Validate dates using update-specific validation
+        validatePolicyDatesForUpdate(startDate, endDate, existingPolicy.getIssueDate());
         
         // Update policy fields
         existingPolicy.setStartDate(startDate);
         existingPolicy.setEndDate(endDate);
-        existingPolicy.setDiscountSurcharge(discountSurcharge);
+        existingPolicy.setDiscountSurcharge(discountSurcharge != null ? discountSurcharge : BigDecimal.ZERO);
         
         // Recalculate premium if dates changed
         BigDecimal newPremium = ratingService.calculatePremium(
@@ -352,8 +352,32 @@ public class PolicyService {
         if (startDate.isAfter(endDate)) {
             throw new IllegalArgumentException("Start date must be before end date");
         }
-        if (endDate.isBefore(LocalDate.now().plusDays(1))) {
-            throw new IllegalArgumentException("End date must be at least one day in the future");
+        if (endDate.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("End date cannot be in the past");
+        }
+    }
+    
+    /**
+     * Validates policy dates for updates (more flexible than creation).
+     * Clean Code: Separate validation for updates to allow existing policies.
+     */
+    private void validatePolicyDatesForUpdate(LocalDate startDate, LocalDate endDate, LocalDate issueDate) {
+        if (startDate == null) {
+            throw new IllegalArgumentException("Start date is required");
+        }
+        if (endDate == null) {
+            throw new IllegalArgumentException("End date is required");
+        }
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("Start date must be before end date");
+        }
+        // Business rule: Policy cannot start before it was issued
+        if (startDate.isBefore(issueDate)) {
+            throw new IllegalArgumentException("Policy start date cannot be before the issue date (" + issueDate + ")");
+        }
+        // For updates, we only require that end date is not in the past
+        if (endDate.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("End date cannot be in the past");
         }
     }
 }

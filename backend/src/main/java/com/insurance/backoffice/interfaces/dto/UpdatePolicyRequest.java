@@ -1,6 +1,7 @@
 package com.insurance.backoffice.interfaces.dto;
 
-import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -9,10 +10,11 @@ import java.time.LocalDate;
  * Request DTO for updating an existing policy.
  */
 public record UpdatePolicyRequest(
-        @Future(message = "Start date must be in the future")
+        @NotNull(message = "Start date is required")
         LocalDate startDate,
 
-        @Future(message = "End date must be in the future")
+        @FutureOrPresent(message = "End date must be today or in the future")
+        @NotNull(message = "End date is required")
         LocalDate endDate,
 
         BigDecimal discountSurcharge

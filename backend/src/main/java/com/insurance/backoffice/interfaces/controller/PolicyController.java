@@ -1,5 +1,6 @@
 package com.insurance.backoffice.interfaces.controller;
 
+import com.insurance.backoffice.interfaces.dto.UpdatePolicyRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -101,6 +102,59 @@ public class PolicyController {
         return ResponseEntity.ok(policyResponses);
     }
     
+    /**
+     * Retrieves a single policy by ID.
+     * Clean Code: RESTful endpoint for single resource retrieval.
+     * 
+     * @param id policy ID
+     * @return policy details
+     */
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
+    @Operation(
+        summary = "Get policy by ID", 
+        description = "Retrieve a specific policy by its ID. Accessible by Operators and Admins.",
+        responses = {
+            @ApiResponse(
+                responseCode = "200", 
+                description = "Policy retrieved successfully",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = PolicyResponse.class),
+                    examples = @ExampleObject(
+                        name = "Policy Details",
+                        value = """
+                        {
+                          "id": 1,
+                          "policyNumber": "POL-2024-001",
+                          "clientName": "John Doe",
+                          "vehicleRegistration": "ABC123",
+                          "insuranceType": "OC",
+                          "startDate": "2024-01-01",
+                          "endDate": "2024-12-31",
+                          "premium": 1200.00,
+                          "status": "ACTIVE"
+                        }
+                        """
+                    )
+                )
+            ),
+            @ApiResponse(responseCode = "404", description = "Policy not found"),
+            @ApiResponse(responseCode = "403", description = "Access denied - Operator or Admin role required")
+        }
+    )
+    public ResponseEntity<PolicyResponse> getPolicyById(
+            @Parameter(description = "Policy ID", example = "1", required = true)
+            @PathVariable Long id) {
+        try {
+            com.insurance.backoffice.domain.Policy policy = policyService.findPolicyById(id);
+            PolicyResponse policyResponse = mapToPolicyResponse(policy);
+            return ResponseEntity.ok(policyResponse);
+        } catch (com.insurance.backoffice.application.service.EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     /**
      * Retrieves policies for a specific client.
      * Clean Code: RESTful endpoint with path variable.
@@ -244,6 +298,87 @@ public class PolicyController {
         return ResponseEntity.status(201).body(policyResponse);
     }
     
+    /**
+     * Updates an existing policy.
+     * Clean Code: PUT endpoint for policy updates.
+     * 
+     * @param id policy ID
+     * @param request policy update request
+     * @return updated policy details
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
+    @Operation(
+        summary = "Update policy", 
+        description = "Update an existing insurance policy. Accessible by Operators and Admins.",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Policy update data",
+            required = true,
+            content = @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = UpdatePolicyRequest.class),
+                examples = @ExampleObject(
+                    name = "Update Policy",
+                    value = """
+                    {
+                      "startDate": "2024-02-01",
+                      "endDate": "2025-01-31",
+                      "discountSurcharge": -50.00
+                    }
+                    """
+                )
+            )
+        ),
+        responses = {
+            @ApiResponse(
+                responseCode = "200", 
+                description = "Policy updated successfully",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = PolicyResponse.class),
+                    examples = @ExampleObject(
+                        name = "Updated Policy",
+                        value = """
+                        {
+                          "id": 1,
+                          "policyNumber": "POL-2024-001",
+                          "clientName": "John Doe",
+                          "vehicleRegistration": "ABC123",
+                          "insuranceType": "OC",
+                          "startDate": "2024-02-01",
+                          "endDate": "2025-01-31",
+                          "premium": 1150.00,
+                          "status": "ACTIVE"
+                        }
+                        """
+                    )
+                )
+            ),
+            @ApiResponse(responseCode = "400", description = "Invalid request data"),
+            @ApiResponse(responseCode = "404", description = "Policy not found"),
+            @ApiResponse(responseCode = "403", description = "Access denied - Operator or Admin role required")
+        }
+    )
+    public ResponseEntity<PolicyResponse> updatePolicy(
+            @Parameter(description = "Policy ID", example = "1", required = true)
+            @PathVariable Long id,
+            @Valid @RequestBody UpdatePolicyRequest request) {
+        try {
+            com.insurance.backoffice.domain.Policy updatedPolicy = policyService.updatePolicy(
+                id,
+                request.startDate(),
+                request.endDate(),
+                request.discountSurcharge()
+            );
+            PolicyResponse policyResponse = mapToPolicyResponse(updatedPolicy);
+            return ResponseEntity.ok(policyResponse);
+        } catch (com.insurance.backoffice.application.service.EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     /**
      * Generates PDF for a policy.
      * Clean Code: POST endpoint for PDF generation action.
