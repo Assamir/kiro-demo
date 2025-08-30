@@ -2,171 +2,110 @@
 
 A comprehensive web-based application for managing car insurance policies for passenger vehicles.
 
-## Project Structure
-
-This is a Gradle multi-module project with the following structure:
-
-```
-insurance-backoffice-system/
-├── backend/                 # Spring Boot backend application
-│   ├── src/main/java/      # Java source code
-│   ├── src/main/resources/ # Configuration and resources
-│   ├── src/test/           # Test code
-│   ├── build.gradle        # Backend dependencies
-│   └── Dockerfile          # Backend container configuration
-├── frontend/               # React frontend application (placeholder)
-│   ├── build.gradle        # Frontend build configuration
-│   └── Dockerfile          # Frontend container configuration
-├── docker-compose.yml      # Docker orchestration
-├── docker-compose.override.yml # Development overrides
-├── build.gradle           # Root project configuration
-└── settings.gradle        # Multi-module configuration
-```
-
-## Technology Stack
-
-### Backend
-- Java 17
-- Spring Boot 3.2.0
-- Spring Security (JWT authentication)
-- Spring Data JPA
-- PostgreSQL
-- Flyway (database migrations)
-- SpringDoc OpenAPI (Swagger)
-- iText (PDF generation)
-- JUnit 5 & Mockito (testing)
-
-### Frontend
-- React 18+ with TypeScript (to be implemented)
-- Material-UI (MUI)
-- React Router
-- Axios
-
-### Infrastructure
-- Docker & Docker Compose
-- PostgreSQL 15
-- Gradle 8.x
-
-## Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
 - Docker and Docker Compose
-- Java 17+ (for local development)
-- Gradle 8.x (or use the wrapper)
+- 8GB+ RAM recommended
+- Ports 3000, 8080, and 5432 available
 
-### Running with Docker Compose
+### Get Running in 5 Minutes
+```bash
+# Clone and start
+git clone <repository-url>
+cd insurance-backoffice-system
+docker-compose up -d
 
-1. Clone the repository
-2. Start the application:
-   ```bash
-   docker-compose up -d
-   ```
+# Wait for services to start (2-3 minutes)
+docker-compose ps
 
-3. Access the application:
-   - Backend API: http://localhost:8080
-   - Swagger UI: http://localhost:8080/swagger-ui.html
-   - Frontend: http://localhost:3000
-   - Database: localhost:5432
+# Access the system
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:8080
+# API Docs: http://localhost:8080/swagger-ui.html
+```
 
-## User Credentials
+### Default Login Credentials
+- **Admin**: admin@insurance.com / admin123
+- **Operator**: mike.johnson@insurance.com / password123
 
-The system uses email-based authentication with the following test accounts:
+## 📚 Documentation
 
-### ADMIN Role Users:
-- **John Administrator**
-  - Email: `admin@insurance.com`
-  - Password: `admin123`
-  - Role: ADMIN (can manage users and has full system access)
+Complete documentation is available in the [docs](docs/) folder:
 
-- **Sarah Manager**
-  - Email: `sarah.manager@insurance.com`
-  - Password: `admin123`
-  - Role: ADMIN
+### 🏗️ Architecture & Design
+- [System Requirements](docs/architecture/requirements.md) - Functional and non-functional requirements
+- [System Design](docs/architecture/system-design.md) - Technical architecture and design decisions
+- [Database Schema](docs/database/schema.md) - Database structure and relationships
+- [API Documentation](docs/api/endpoints.md) - REST API reference
 
-### OPERATOR Role Users:
-- **Mike Johnson**
-  - Email: `mike.johnson@insurance.com`
-  - Password: `admin123`
-  - Role: OPERATOR (can issue policies and manage day-to-day operations)
+### 🚀 Setup & Deployment
+- [Quick Start Guide](docs/deployment/quick-start.md) - Get up and running quickly
+- [Docker Setup](docs/deployment/docker-setup.md) - Container deployment guide
+- [Production Setup](docs/deployment/production-setup.md) - Production deployment guide
+- [Environment Configuration](docs/deployment/environment.md) - Configuration settings
+- [Users and Passwords](docs/deployment/users-and-passwords.md) - System credentials
 
-- **Lisa Williams**
-  - Email: `lisa.williams@insurance.com`
-  - Password: `admin123`
-  - Role: OPERATOR
+### 👨‍💻 Development
+- [Development Setup](docs/development/setup.md) - Local development environment
+- [Code Structure](docs/development/code-structure.md) - Project organization and conventions
+- [Testing Guide](docs/development/testing.md) - Testing strategies and tools
+- [Contributing Guidelines](docs/development/contributing.md) - How to contribute to the project
 
-- **David Brown**
-  - Email: `david.brown@insurance.com`
-  - Password: `admin123`
-  - Role: OPERATOR
+### 📖 User Guide
+- [User Manual](docs/user-guide/user-manual.md) - How to use the system
+- [Admin Guide](docs/user-guide/admin-guide.md) - Administrative functions
+- [Troubleshooting](docs/user-guide/troubleshooting.md) - Common issues and solutions
 
-- **Emma Davis**
-  - Email: `emma.davis@insurance.com`
-  - Password: `admin123`
-  - Role: OPERATOR
+### 🗄️ Database
+- [Schema Documentation](docs/database/schema.md) - Database structure
+- [Migration Guide](docs/database/migrations.md) - Database migration procedures
+- [Sample Data](docs/database/sample-data.md) - Test data information
 
-**Note**: All test users use the same password (`admin123`) for development purposes. In production, users should be required to change their passwords on first login.
+## 🏗️ Technology Stack
 
-**Current Status**: 
-- ✅ Backend API is running successfully on http://localhost:8080
-- ✅ Frontend is running successfully on http://localhost:3000  
-- ✅ Database is properly configured with sample users
-- ✅ **Authentication System**: Login is working correctly for all user roles
-- ✅ **JWT Security**: Fixed JWT signing key size issue for HS512 algorithm
+### Backend
+- **Java 17** with Spring Boot 3.2
+- **PostgreSQL 15** database
+- **Spring Security** with JWT authentication
+- **Flyway** for database migrations
+- **SpringDoc OpenAPI** for API documentation
 
-**For Testing**: 
-- API Health Check: http://localhost:8080/actuator/health
-- Swagger Documentation: http://localhost:8080/swagger-ui.html
-- All database migrations have been applied successfully (V1-V16)
+### Frontend
+- **React 18** with TypeScript
+- **Material-UI (MUI)** component library
+- **React Router** for navigation
+- **Axios** for API communication
 
-### Local Development
+### Infrastructure
+- **Docker & Docker Compose** for containerization
+- **Gradle** for build automation
 
-1. Start the database:
-   ```bash
-   docker-compose up -d database
-   ```
+## 📊 System Status
 
-2. Run the backend:
-   ```bash
-   cd backend
-   ./gradlew bootRun
-   ```
+- **Frontend**: React TypeScript application running on port 3000
+- **Backend**: Spring Boot Java application running on port 8080
+- **Database**: PostgreSQL running on port 5432
+- **Sample Data**: 443 policies, 31 clients, 43 vehicles, 8 users
 
-3. Run tests:
-   ```bash
-   ./gradlew test
-   ```
+## 🔗 Quick Links
 
-## Configuration
+- **Live System**: http://localhost:3000
+- **API Documentation**: http://localhost:8080/swagger-ui.html
+- **Health Check**: http://localhost:8080/actuator/health
+- **Complete Documentation**: [docs/README.md](docs/README.md)
 
-### Environment Variables
-- `SPRING_PROFILES_ACTIVE`: Set to `dev` for development
-- `SPRING_DATASOURCE_URL`: Database connection URL
-- `SPRING_DATASOURCE_USERNAME`: Database username
-- `SPRING_DATASOURCE_PASSWORD`: Database password
+## 🆘 Need Help?
 
-### Profiles
-- `dev`: Development environment with debug logging
-- `test`: Test environment with in-memory H2 database
-- `prod`: Production environment (to be configured)
+- **Quick Issues**: Check [Troubleshooting Guide](docs/user-guide/troubleshooting.md)
+- **User Questions**: See [User Manual](docs/user-guide/user-manual.md)
+- **Development**: Review [Development Setup](docs/development/setup.md)
+- **API Reference**: Visit [API Documentation](docs/api/endpoints.md)
 
-## API Documentation
+## 🤝 Contributing
 
-Once the backend is running, visit http://localhost:8080/swagger-ui.html for interactive API documentation.
+We welcome contributions! Please read our [Contributing Guidelines](docs/development/contributing.md) for details on our code of conduct and the process for submitting pull requests.
 
-## Development Guidelines
+## 📄 License
 
-This project follows Clean Code principles and Clean Architecture patterns:
-- Domain-driven design
-- SOLID principles
-- Comprehensive unit testing
-- Meaningful naming conventions
-- Small, focused methods and classes
-
-## Next Steps
-
-1. Implement domain models and database schema
-2. Create repository layer with Spring Data JPA
-3. Implement service layer with business logic
-4. Set up Spring Security configuration
-5. Create REST API controllers
-6. Implement React frontend components
+This project is licensed under the MIT License - see the LICENSE file for details.
