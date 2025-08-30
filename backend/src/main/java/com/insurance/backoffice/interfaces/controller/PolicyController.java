@@ -292,6 +292,68 @@ public class PolicyController {
     }
     
     /**
+     * Retrieves all clients for policy form dropdowns.
+     * Clean Code: Simple endpoint for form data population.
+     * 
+     * @return list of all clients
+     */
+    @GetMapping("/clients")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
+    @Operation(
+        summary = "Get all clients", 
+        description = "Retrieve all clients for policy form dropdowns. Accessible by Operators and Admins.",
+        responses = {
+            @ApiResponse(
+                responseCode = "200", 
+                description = "Clients retrieved successfully",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ClientResponse[].class)
+                )
+            ),
+            @ApiResponse(responseCode = "403", description = "Access denied - Operator or Admin role required")
+        }
+    )
+    public ResponseEntity<List<ClientResponse>> getAllClients() {
+        List<com.insurance.backoffice.domain.Client> clients = policyService.findAllClients();
+        List<ClientResponse> clientResponses = clients.stream()
+                .map(this::mapToClientResponse)
+                .toList();
+        return ResponseEntity.ok(clientResponses);
+    }
+    
+    /**
+     * Retrieves all vehicles for policy form dropdowns.
+     * Clean Code: Simple endpoint for form data population.
+     * 
+     * @return list of all vehicles
+     */
+    @GetMapping("/vehicles")
+    @PreAuthorize("hasAnyRole('OPERATOR', 'ADMIN')")
+    @Operation(
+        summary = "Get all vehicles", 
+        description = "Retrieve all vehicles for policy form dropdowns. Accessible by Operators and Admins.",
+        responses = {
+            @ApiResponse(
+                responseCode = "200", 
+                description = "Vehicles retrieved successfully",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = VehicleResponse[].class)
+                )
+            ),
+            @ApiResponse(responseCode = "403", description = "Access denied - Operator or Admin role required")
+        }
+    )
+    public ResponseEntity<List<VehicleResponse>> getAllVehicles() {
+        List<com.insurance.backoffice.domain.Vehicle> vehicles = policyService.findAllVehicles();
+        List<VehicleResponse> vehicleResponses = vehicles.stream()
+                .map(this::mapToVehicleResponse)
+                .toList();
+        return ResponseEntity.ok(vehicleResponses);
+    }
+    
+    /**
      * Data Transfer Object for policy response.
      * Clean Code: Inner record for response data structure.
      */
@@ -356,6 +418,59 @@ public class PolicyController {
     ) {}
     
     /**
+     * Data Transfer Object for client response.
+     * Clean Code: Inner record for client data structure.
+     */
+    @Schema(description = "Client information response")
+    public record ClientResponse(
+        @Schema(description = "Client ID", example = "1")
+        Long id,
+        
+        @Schema(description = "Client full name", example = "John Doe")
+        String fullName,
+        
+        @Schema(description = "Client PESEL", example = "12345678901")
+        String pesel,
+        
+        @Schema(description = "Client email", example = "john.doe@example.com")
+        String email,
+        
+        @Schema(description = "Client phone number", example = "+48123456789")
+        String phoneNumber
+    ) {}
+    
+    /**
+     * Data Transfer Object for vehicle response.
+     * Clean Code: Inner record for vehicle data structure.
+     */
+    @Schema(description = "Vehicle information response")
+    public record VehicleResponse(
+        @Schema(description = "Vehicle ID", example = "1")
+        Long id,
+        
+        @Schema(description = "Vehicle make", example = "Toyota")
+        String make,
+        
+        @Schema(description = "Vehicle model", example = "Corolla")
+        String model,
+        
+        @Schema(description = "Vehicle registration number", example = "ABC123")
+        String registrationNumber,
+        
+        @Schema(description = "Vehicle VIN", example = "1HGBH41JXMN109186")
+        String vin,
+        
+        @Schema(description = "Year of manufacture", example = "2020")
+        Integer yearOfManufacture,
+        
+        @Schema(description = "Engine capacity in cc", example = "1600")
+        Integer engineCapacity,
+        
+        @Schema(description = "Engine power in HP", example = "120")
+        Integer power
+    ) {}
+    
+    /**
      * Maps Policy entity to PolicyResponse DTO.
      * Clean Code: Extracted mapping logic for reusability.
      */
@@ -370,6 +485,37 @@ public class PolicyController {
             policy.getEndDate(),
             policy.getPremium(),
             policy.getStatus()
+        );
+    }
+    
+    /**
+     * Maps Client entity to ClientResponse DTO.
+     * Clean Code: Extracted mapping logic for reusability.
+     */
+    private ClientResponse mapToClientResponse(com.insurance.backoffice.domain.Client client) {
+        return new ClientResponse(
+            client.getId(),
+            client.getFullName(),
+            client.getPesel(),
+            client.getEmail(),
+            client.getPhoneNumber()
+        );
+    }
+    
+    /**
+     * Maps Vehicle entity to VehicleResponse DTO.
+     * Clean Code: Extracted mapping logic for reusability.
+     */
+    private VehicleResponse mapToVehicleResponse(com.insurance.backoffice.domain.Vehicle vehicle) {
+        return new VehicleResponse(
+            vehicle.getId(),
+            vehicle.getMake(),
+            vehicle.getModel(),
+            vehicle.getRegistrationNumber(),
+            vehicle.getVin(),
+            vehicle.getYearOfManufacture(),
+            vehicle.getEngineCapacity(),
+            vehicle.getPower()
         );
     }
 }

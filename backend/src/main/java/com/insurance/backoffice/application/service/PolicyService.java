@@ -276,6 +276,28 @@ public class PolicyService {
     }
     
     /**
+     * Finds all clients for policy form dropdowns.
+     * Clean Code: Simple method for form data population.
+     * 
+     * @return list of all clients
+     */
+    @Transactional(readOnly = true)
+    public List<Client> findAllClients() {
+        return clientRepository.findAll();
+    }
+    
+    /**
+     * Finds all vehicles for policy form dropdowns.
+     * Clean Code: Simple method for form data population.
+     * 
+     * @return list of all vehicles
+     */
+    @Transactional(readOnly = true)
+    public List<Vehicle> findAllVehicles() {
+        return vehicleRepository.findAll();
+    }
+    
+    /**
      * Generates a unique policy number.
      * Clean Code: Extracted utility method with clear purpose.
      * 
