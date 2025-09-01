@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -152,8 +152,8 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
         insuranceType: policy.insuranceType,
         startDate: policy.startDate,
         endDate: policy.endDate,
-        discountSurcharge: policy.discountSurcharge || '',
-        amountGuaranteed: policy.amountGuaranteed || '',
+        discountSurcharge: policy.discountSurcharge !== undefined && policy.discountSurcharge !== null ? policy.discountSurcharge : '',
+        amountGuaranteed: policy.amountGuaranteed !== undefined && policy.amountGuaranteed !== null ? policy.amountGuaranteed : '',
         coverageArea: policy.coverageArea || '',
         policyDetails: policy.policyDetails || {},
       };
@@ -177,6 +177,9 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
     }
   };
 
+  // Memoize initial values to prevent unnecessary resets
+  const initialValues = useMemo(() => getInitialValues(), [policy?.id, clients, vehicles]);
+
   // Use enhanced form validation
   const {
     values,
@@ -191,7 +194,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
     setError,
     setValue,
   } = useFormValidation({
-    initialValues: getInitialValues(),
+    initialValues: initialValues,
     validationSchema,
     validateOnChange: true,
     validateOnBlur: true,
@@ -251,10 +254,10 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
   // Reset form when dialog opens/closes or policy changes
   useEffect(() => {
     if (open) {
-      reset(getInitialValues());
+      reset(initialValues);
       setSubmitError(null);
     }
-  }, [policy, open, clients, vehicles, reset]);
+  }, [open, initialValues, reset]);
 
   const handleSelectChange = (field: keyof FormData) => (event: any) => {
     const value = event.target.value;
