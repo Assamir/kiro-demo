@@ -1,16 +1,14 @@
-# Development Dockerfile for React application
-FROM node:18-alpine
+# Production Dockerfile for React application
+FROM nginx:alpine
 
-WORKDIR /app
+# Copy the built application to nginx html directory
+COPY build /usr/share/nginx/html
 
-# Install serve to serve the built application
-RUN npm install -g serve
-
-# Copy the pre-built application
-COPY build ./build
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port
 EXPOSE 3000
 
-# Serve the built application
-CMD ["serve", "-s", "build", "-l", "3000"]
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

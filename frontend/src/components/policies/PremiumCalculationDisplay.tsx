@@ -53,10 +53,19 @@ const PremiumCalculationDisplay: React.FC<PremiumCalculationDisplayProps> = ({
     setError(null);
     
     try {
+      // For now, use mock vehicle data since we need authentication to call the vehicle API
+      // In a proper implementation, this would fetch vehicle data from the backend
+      const currentYear = new Date().getFullYear();
+      const mockVehicleAge = currentYear - 2020; // Default vehicle year
+      
       const result = await ratingService.calculatePremiumBreakdown({
         insuranceType,
         vehicleId: Number(vehicleId),
         policyDate,
+        vehicleAge: mockVehicleAge,
+        engineCapacity: 1600, // Mock engine capacity
+        power: 132, // Mock power
+        clientAge: 35, // Mock client age for AC insurance
       });
       setBreakdown(result);
     } catch (err: any) {

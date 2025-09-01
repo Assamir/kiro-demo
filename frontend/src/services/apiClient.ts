@@ -16,6 +16,14 @@ interface RetryConfig {
   retryCondition?: (error: AxiosError) => boolean;
 }
 
+// Extended request config with retry support
+interface ExtendedAxiosRequestConfig extends AxiosRequestConfig {
+  retry?: RetryConfig;
+  metadata?: {
+    startTime: Date;
+  };
+}
+
 const DEFAULT_RETRY_CONFIG: RetryConfig = {
   retries: 3,
   retryDelay: 1000,
@@ -67,10 +75,8 @@ apiClient.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
-    const config = error.config as AxiosRequestConfig & { 
-      retry?: RetryConfig; 
+    const config = error.config as ExtendedAxiosRequestConfig & { 
       retryCount?: number;
-      metadata?: { startTime: Date };
     };
 
     // Handle authentication errors
@@ -204,12 +210,12 @@ function createApiError(error: AxiosError, customMessage?: string): ApiError {
 
 // Utility function for making requests with custom retry configuration
 export const apiRequest = async <T = any>(
-  config: AxiosRequestConfig & { retry?: Partial<RetryConfig> }
+  config: ExtendedAxiosRequestConfig & { retry?: Partial<RetryConfig> }
 ): Promise<T> => {
   const { retry, ...requestConfig } = config;
   
   if (retry) {
-    requestConfig.retry = { ...DEFAULT_RETRY_CONFIG, ...retry };
+    (requestConfig as ExtendedAxiosRequestConfig).retry = { ...DEFAULT_RETRY_CONFIG, ...retry };
   }
 
   const response = await apiClient(requestConfig);
