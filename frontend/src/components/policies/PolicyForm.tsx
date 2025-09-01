@@ -464,8 +464,11 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
               <EnhancedTextField
                 label="Discount/Surcharge"
                 type="number"
-                value={values.discountSurcharge}
-                onChange={handleChange('discountSurcharge')}
+                value={values.discountSurcharge === '' ? '' : String(values.discountSurcharge)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setValue('discountSurcharge', value === '' ? '' : Number(value));
+                }}
                 onBlur={handleBlur('discountSurcharge')}
                 validationState={touched.discountSurcharge ? (errors.discountSurcharge ? 'error' : 'success') : null}
                 validationMessage={touched.discountSurcharge ? errors.discountSurcharge : undefined}
@@ -487,8 +490,11 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
               <EnhancedTextField
                 label="Amount Guaranteed"
                 type="number"
-                value={values.amountGuaranteed}
-                onChange={handleChange('amountGuaranteed')}
+                value={values.amountGuaranteed === '' ? '' : String(values.amountGuaranteed)}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setValue('amountGuaranteed', value === '' ? '' : Number(value));
+                }}
                 onBlur={handleBlur('amountGuaranteed')}
                 validationState={touched.amountGuaranteed ? (errors.amountGuaranteed ? 'error' : 'success') : null}
                 validationMessage={touched.amountGuaranteed ? errors.amountGuaranteed : undefined}
