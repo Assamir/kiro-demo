@@ -38,6 +38,8 @@ export interface CreatePolicyRequest {
   startDate: string;
   endDate: string;
   discountSurcharge?: number;
+  guaranteedSum?: number;
+  coverageArea?: string;
   policyDetails?: PolicyDetails;
 }
 

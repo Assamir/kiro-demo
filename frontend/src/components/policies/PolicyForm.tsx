@@ -229,6 +229,8 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             startDate: formData.startDate,
             endDate: formData.endDate,
             discountSurcharge: formData.discountSurcharge === '' ? undefined : Number(formData.discountSurcharge),
+            guaranteedSum: formData.amountGuaranteed === '' ? undefined : Number(formData.amountGuaranteed),
+            coverageArea: formData.coverageArea || undefined,
             policyDetails: formData.policyDetails,
           };
         }

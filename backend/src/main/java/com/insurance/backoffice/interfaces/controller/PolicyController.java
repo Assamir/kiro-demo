@@ -293,7 +293,9 @@ public class PolicyController {
             request.insuranceType(),
             request.startDate(),
             request.endDate(),
-            request.discountSurcharge()
+            request.discountSurcharge(),
+            request.guaranteedSum(),
+            request.coverageArea()
         );
         PolicyResponse policyResponse = mapToPolicyResponse(createdPolicy);
         return ResponseEntity.status(201).body(policyResponse);

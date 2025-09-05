@@ -76,6 +76,8 @@ public class Policy {
         this.insuranceType = builder.insuranceType;
         this.premium = builder.premium;
         this.discountSurcharge = builder.discountSurcharge;
+        this.amountGuaranteed = builder.amountGuaranteed;
+        this.coverageArea = builder.coverageArea;
         this.client = builder.client;
         this.vehicle = builder.vehicle;
     }
@@ -238,6 +240,8 @@ public class Policy {
         private InsuranceType insuranceType;
         private BigDecimal premium;
         private BigDecimal discountSurcharge;
+        private BigDecimal amountGuaranteed;
+        private String coverageArea;
         private Client client;
         private Vehicle vehicle;
         
@@ -283,6 +287,16 @@ public class Policy {
         
         public Builder discountSurcharge(BigDecimal discountSurcharge) {
             this.discountSurcharge = discountSurcharge;
+            return this;
+        }
+        
+        public Builder amountGuaranteed(BigDecimal amountGuaranteed) {
+            this.amountGuaranteed = amountGuaranteed;
+            return this;
+        }
+        
+        public Builder coverageArea(String coverageArea) {
+            this.coverageArea = coverageArea;
             return this;
         }
         

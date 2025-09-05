@@ -51,7 +51,8 @@ public class PolicyService {
      * @throws IllegalArgumentException if policy data is invalid
      */
     public Policy createPolicy(Long clientId, Long vehicleId, InsuranceType insuranceType,
-                              LocalDate startDate, LocalDate endDate, BigDecimal discountSurcharge) {
+                              LocalDate startDate, LocalDate endDate, BigDecimal discountSurcharge,
+                              BigDecimal amountGuaranteed, String coverageArea) {
         
         // Validate input parameters
         validatePolicyCreationParameters(clientId, vehicleId, insuranceType, startDate, endDate);
@@ -79,6 +80,8 @@ public class PolicyService {
                 .insuranceType(insuranceType)
                 .premium(premium)
                 .discountSurcharge(discountSurcharge)
+                .amountGuaranteed(amountGuaranteed)
+                .coverageArea(coverageArea)
                 .client(client)
                 .vehicle(vehicle)
                 .build();
