@@ -146,7 +146,13 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
       const client = clients.find(c => c.fullName === policy.clientName);
       const vehicle = vehicles.find(v => v.registrationNumber === policy.vehicleRegistration);
       
-      return {
+      console.log('=== FORM INITIALIZATION ===');
+      console.log('Policy data:', policy);
+      console.log('Discount value from policy:', policy.discountSurcharge);
+      console.log('Amount guaranteed from policy:', policy.amountGuaranteed);
+      console.log('Coverage area from policy:', policy.coverageArea);
+      
+      const initialValues: FormData = {
         clientId: client?.id || '',
         vehicleId: vehicle?.id || '',
         insuranceType: policy.insuranceType,
@@ -157,6 +163,9 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
         coverageArea: policy.coverageArea || '',
         policyDetails: policy.policyDetails || {},
       };
+      
+      console.log('Initial form values:', initialValues);
+      return initialValues;
     } else {
       // Set default dates for new policies
       const today = new Date();
@@ -470,12 +479,13 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             {/* Discount/Surcharge */}
             <Grid item xs={12} md={6}>
               <EnhancedTextField
+                name="discountSurcharge"
                 label="Discount/Surcharge"
                 type="number"
                 value={values.discountSurcharge === '' ? '' : String(values.discountSurcharge)}
                 onChange={(event) => {
                   const value = event.target.value;
-                  console.log('Discount/Surcharge field changed:', value);
+                  console.log('Discount/Surcharge field changed:', value, 'Current form value:', values.discountSurcharge);
                   setValue('discountSurcharge', value === '' ? '' : Number(value));
                 }}
                 onBlur={handleBlur('discountSurcharge')}
@@ -497,12 +507,13 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
             {/* Amount Guaranteed */}
             <Grid item xs={12} md={6}>
               <EnhancedTextField
+                name="amountGuaranteed"
                 label="Amount Guaranteed"
                 type="number"
                 value={values.amountGuaranteed === '' ? '' : String(values.amountGuaranteed)}
                 onChange={(event) => {
                   const value = event.target.value;
-                  console.log('Amount Guaranteed field changed:', value);
+                  console.log('Amount Guaranteed field changed:', value, 'Current form value:', values.amountGuaranteed);
                   setValue('amountGuaranteed', value === '' ? '' : Number(value));
                 }}
                 onBlur={handleBlur('amountGuaranteed')}
@@ -526,6 +537,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
               <FormControl fullWidth error={Boolean(touched.coverageArea && errors.coverageArea)}>
                 <InputLabel id="coverage-area-label">Coverage Area</InputLabel>
                 <Select
+                  name="coverageArea"
                   labelId="coverage-area-label"
                   value={values.coverageArea}
                   label="Coverage Area"

@@ -5,9 +5,10 @@ import { policyService } from '../../services/policyService';
 
 interface PolicyFormTestProps {
   policy: Policy;
+  onRefresh?: () => void;
 }
 
-const PolicyFormTest: React.FC<PolicyFormTestProps> = ({ policy }) => {
+const PolicyFormTest: React.FC<PolicyFormTestProps> = ({ policy, onRefresh }) => {
   const [testResult, setTestResult] = useState<string>('');
   const [loading, setLoading] = useState(false);
 
@@ -93,6 +94,46 @@ const PolicyFormTest: React.FC<PolicyFormTestProps> = ({ policy }) => {
     setTestResult('🔍 Form field test completed - check console for details');
   };
 
+  const testDiscountField = async () => {
+    setLoading(true);
+    setTestResult('');
+    
+    try {
+      console.log('=== DISCOUNT FIELD SPECIFIC TEST ===');
+      console.log('Original policy discount:', policy.discountSurcharge);
+      
+      // Test discount field specifically
+      const testData = {
+        startDate: policy.startDate,
+        endDate: policy.endDate,
+        discountSurcharge: -500, // Test negative discount
+        amountGuaranteed: policy.amountGuaranteed,
+        coverageArea: policy.coverageArea
+      };
+      
+      console.log('Testing discount update with data:', testData);
+      
+      // Make the API call
+      const updatedPolicy = await policyService.updatePolicy(policy.id, testData);
+      
+      console.log('Received updated policy:', updatedPolicy);
+      console.log('Updated discount value:', updatedPolicy.discountSurcharge);
+      
+      // Check if the discount update was successful
+      if (updatedPolicy.discountSurcharge === -500) {
+        setTestResult('✅ DISCOUNT SUCCESS: Discount field update worked correctly!');
+      } else {
+        setTestResult(`❌ DISCOUNT FAILED: Expected discount=-500, got ${updatedPolicy.discountSurcharge}`);
+      }
+      
+    } catch (error: any) {
+      console.error('Discount field test failed:', error);
+      setTestResult(`❌ DISCOUNT ERROR: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Box sx={{ p: 2, border: '1px solid #ccc', borderRadius: 1, mb: 2 }}>
       <Typography variant="h6" gutterBottom>
@@ -114,6 +155,25 @@ const PolicyFormTest: React.FC<PolicyFormTestProps> = ({ policy }) => {
         >
           Test Form Fields
         </Button>
+        
+        <Button 
+          variant="outlined" 
+          color="warning"
+          onClick={testDiscountField}
+          disabled={loading}
+        >
+          Test Discount Field
+        </Button>
+        
+        {onRefresh && (
+          <Button 
+            variant="outlined" 
+            color="info"
+            onClick={onRefresh}
+          >
+            Refresh Data
+          </Button>
+        )}
       </Box>
       
       {testResult && (
@@ -124,6 +184,10 @@ const PolicyFormTest: React.FC<PolicyFormTestProps> = ({ policy }) => {
       
       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
         Current values: Amount={policy.amountGuaranteed || 'null'}, Coverage={policy.coverageArea || 'null'}, Discount={policy.discountSurcharge || 'null'}
+      </Typography>
+      
+      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+        Policy ID: {policy.id} | Last updated: {new Date().toLocaleTimeString()}
       </Typography>
     </Box>
   );

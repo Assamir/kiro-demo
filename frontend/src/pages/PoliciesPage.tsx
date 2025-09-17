@@ -92,10 +92,21 @@ const PoliciesPage: React.FC = () => {
         console.log('Updating policy with data:', policyData);
         const updatedPolicy = await policyService.updatePolicy(selectedPolicy.id, policyData as UpdatePolicyRequest);
         console.log('Received updated policy:', updatedPolicy);
-        setPolicies(prev => prev.map(p => p.id === selectedPolicy.id ? updatedPolicy : p));
+        
+        // Update local state immediately
+        setPolicies(prev => {
+          const newPolicies = prev.map(p => p.id === selectedPolicy.id ? updatedPolicy : p);
+          console.log('Updated policies array:', newPolicies);
+          return newPolicies;
+        });
+        
         showNotification('Policy updated successfully', 'success');
-        // Force refresh data to ensure UI is updated
-        setTimeout(() => loadData(), 500);
+        
+        // Also refresh data from server to ensure consistency
+        setTimeout(() => {
+          console.log('Refreshing data from server...');
+          loadData();
+        }, 100);
       } else {
         // Create new policy
         const newPolicy = await policyService.createPolicy(policyData as CreatePolicyRequest);
@@ -159,11 +170,13 @@ const PoliciesPage: React.FC = () => {
 
       {/* Policy List */}
       <PolicyList
+        key={`policies-${policies.length}-${policies.map(p => `${p.id}-${p.discountSurcharge}-${p.amountGuaranteed}-${p.coverageArea}`).join('-')}`}
         policies={policies}
         loading={loading}
         onEditPolicy={handleEditPolicy}
         onCancelPolicy={handleCancelPolicy}
         onGeneratePdf={handleGeneratePdf}
+        onRefresh={loadData}
       />
 
       {/* Policy Form Dialog */}

@@ -37,6 +37,7 @@ interface PolicyListProps {
   onEditPolicy: (policy: Policy) => void;
   onCancelPolicy: (policy: Policy) => void;
   onGeneratePdf: (policy: Policy) => void;
+  onRefresh?: () => void;
 }
 
 const PolicyList: React.FC<PolicyListProps> = ({
@@ -45,6 +46,7 @@ const PolicyList: React.FC<PolicyListProps> = ({
   onEditPolicy,
   onCancelPolicy,
   onGeneratePdf,
+  onRefresh,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<PolicySearchFilters>({
@@ -173,7 +175,10 @@ const PolicyList: React.FC<PolicyListProps> = ({
 
         {/* Test Component for AC-2024-002001 */}
         {filteredPolicies.find(p => p.policyNumber === 'AC-2024-002001') && (
-          <PolicyFormTest policy={filteredPolicies.find(p => p.policyNumber === 'AC-2024-002001')!} />
+          <PolicyFormTest 
+            policy={filteredPolicies.find(p => p.policyNumber === 'AC-2024-002001')!} 
+            onRefresh={onRefresh}
+          />
         )}
 
         {/* Policies Table */}
