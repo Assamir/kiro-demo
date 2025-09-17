@@ -15,6 +15,7 @@ import {
   InputAdornment,
   Grid,
   Divider,
+
 } from '@mui/material';
 import {
   Policy as PolicyIcon,
@@ -22,6 +23,7 @@ import {
   DirectionsCar,
   Euro,
   Security,
+  Refresh,
 } from '@mui/icons-material';
 import { Policy, CreatePolicyRequest, UpdatePolicyRequest, Client, Vehicle, PolicyDetails } from '../../types/policy';
 import { useFormValidation } from '../../hooks/useFormValidation';
@@ -87,6 +89,8 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
   const isEditing = Boolean(policy);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { showError, showSuccess } = useNotification();
+  
+
 
   // Define validation schema
   const validationSchema: ValidationSchema<FormData> = {
@@ -327,11 +331,15 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
       }}
     >
       <DialogTitle sx={{ pb: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <PolicyIcon />
-          <Typography variant="h6">
-            {isEditing ? 'Edit Policy' : 'Create New Policy'}
-          </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <PolicyIcon />
+            <Typography variant="h6">
+              {isEditing ? 'Edit Policy' : 'Create New Policy'}
+            </Typography>
+          </Box>
+          
+
         </Box>
       </DialogTitle>
 
@@ -650,21 +658,43 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
         </DialogContent>
 
         <DialogActions sx={{ p: 3, pt: 2 }}>
-          <Button 
-            onClick={handleClose} 
-            disabled={loading || isSubmitting}
-            color="inherit"
-          >
-            Cancel
-          </Button>
-          <Button 
-            type="submit" 
-            variant="contained" 
-            disabled={loading || isSubmitting || !isValid}
-            sx={{ minWidth: 100 }}
-          >
-            {isSubmitting ? 'Saving...' : (isEditing ? 'Update' : 'Create')}
-          </Button>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+            <Box>
+              {isEditing && (
+                <Button
+                  onClick={() => {
+                    console.log('Manual Force Reload triggered');
+                    window.location.reload();
+                  }}
+                  disabled={loading || isSubmitting}
+                  startIcon={<Refresh />}
+                  color="info"
+                  variant="outlined"
+                  size="small"
+                >
+                  Force Reload
+                </Button>
+              )}
+            </Box>
+            
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button 
+                onClick={handleClose} 
+                disabled={loading || isSubmitting}
+                color="inherit"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                variant="contained" 
+                disabled={loading || isSubmitting || !isValid}
+                sx={{ minWidth: 100 }}
+              >
+                {isSubmitting ? 'Saving...' : (isEditing ? 'Update' : 'Create')}
+              </Button>
+            </Box>
+          </Box>
         </DialogActions>
       </form>
     </Dialog>

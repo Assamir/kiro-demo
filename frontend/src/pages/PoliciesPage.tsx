@@ -25,6 +25,7 @@ const PoliciesPage: React.FC = () => {
   const [selectedPolicy, setSelectedPolicy] = useState<Policy | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
+  const [refreshVersion, setRefreshVersion] = useState(0);
   const [notification, setNotification] = useState<{
     open: boolean;
     message: string;
@@ -43,15 +44,23 @@ const PoliciesPage: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+      console.log('Loading fresh data from server...');
+      
       const [policiesData, clientsData, vehiclesData] = await Promise.all([
         policyService.getAllPolicies(),
         policyService.getAllClients(),
         policyService.getAllVehicles(),
       ]);
       
+      console.log('Loaded policies:', policiesData);
+      console.log('AC-2024-002001 policy:', policiesData.find(p => p.policyNumber === 'AC-2024-002001'));
+      
       setPolicies(policiesData);
       setClients(clientsData);
       setVehicles(vehiclesData);
+      setRefreshVersion(prev => prev + 1);
+      
+      console.log('Data loading completed, refresh version:', refreshVersion + 1);
     } catch (error: any) {
       showNotification('Failed to load data: ' + (error.response?.data?.message || error.message), 'error');
     } finally {
@@ -89,24 +98,37 @@ const PoliciesPage: React.FC = () => {
       
       if (selectedPolicy) {
         // Update existing policy
+        console.log('=== FORM SUBMIT START ===');
+        console.log('Selected policy ID:', selectedPolicy.id);
         console.log('Updating policy with data:', policyData);
-        const updatedPolicy = await policyService.updatePolicy(selectedPolicy.id, policyData as UpdatePolicyRequest);
-        console.log('Received updated policy:', updatedPolicy);
         
-        // Update local state immediately
-        setPolicies(prev => {
-          const newPolicies = prev.map(p => p.id === selectedPolicy.id ? updatedPolicy : p);
-          console.log('Updated policies array:', newPolicies);
-          return newPolicies;
-        });
+        const updatedPolicy = await policyService.updatePolicy(selectedPolicy.id, policyData as UpdatePolicyRequest);
+        console.log('Received updated policy from API:', updatedPolicy);
         
         showNotification('Policy updated successfully', 'success');
         
-        // Also refresh data from server to ensure consistency
-        setTimeout(() => {
-          console.log('Refreshing data from server...');
-          loadData();
+        // Multiple refresh strategies to ensure UI updates
+        console.log('=== REFRESH STRATEGY 1: Immediate state update ===');
+        setPolicies(prev => {
+          const updated = prev.map(p => p.id === selectedPolicy.id ? updatedPolicy : p);
+          console.log('Updated policies with immediate state:', updated);
+          return updated;
+        });
+        
+        console.log('=== REFRESH STRATEGY 2: Force server refresh ===');
+        setTimeout(async () => {
+          await loadData();
+          console.log('Server refresh completed');
         }, 100);
+        
+        console.log('=== REFRESH STRATEGY 3: Force component re-render ===');
+        setRefreshVersion(prev => {
+          const newVersion = prev + 10; // Big increment to force change
+          console.log('Setting refresh version to:', newVersion);
+          return newVersion;
+        });
+        
+        console.log('=== FORM SUBMIT COMPLETED ===');
       } else {
         // Create new policy
         const newPolicy = await policyService.createPolicy(policyData as CreatePolicyRequest);
@@ -114,6 +136,7 @@ const PoliciesPage: React.FC = () => {
         showNotification('Policy created successfully', 'success');
       }
     } catch (error: any) {
+      console.error('Form submit error:', error);
       throw error; // Re-throw to be handled by the form component
     } finally {
       setFormLoading(false);
@@ -170,7 +193,7 @@ const PoliciesPage: React.FC = () => {
 
       {/* Policy List */}
       <PolicyList
-        key={`policies-${policies.length}-${policies.map(p => `${p.id}-${p.discountSurcharge}-${p.amountGuaranteed}-${p.coverageArea}`).join('-')}`}
+        key={`policies-refresh-${refreshVersion}`}
         policies={policies}
         loading={loading}
         onEditPolicy={handleEditPolicy}

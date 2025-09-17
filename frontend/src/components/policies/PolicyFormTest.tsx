@@ -44,6 +44,11 @@ const PolicyFormTest: React.FC<PolicyFormTestProps> = ({ policy, onRefresh }) =>
       
       if (success) {
         setTestResult('✅ SUCCESS: Policy update worked correctly!');
+        // Trigger refresh after successful test
+        if (onRefresh) {
+          console.log('Triggering refresh after successful test...');
+          setTimeout(() => onRefresh(), 500);
+        }
       } else {
         setTestResult(`❌ FAILED: Policy update did not return expected values.
           Expected: discountSurcharge=123, amountGuaranteed=999000, coverageArea=Europe
@@ -122,6 +127,11 @@ const PolicyFormTest: React.FC<PolicyFormTestProps> = ({ policy, onRefresh }) =>
       // Check if the discount update was successful
       if (updatedPolicy.discountSurcharge === -500) {
         setTestResult('✅ DISCOUNT SUCCESS: Discount field update worked correctly!');
+        // Trigger refresh after successful test
+        if (onRefresh) {
+          console.log('Triggering refresh after successful discount test...');
+          setTimeout(() => onRefresh(), 500);
+        }
       } else {
         setTestResult(`❌ DISCOUNT FAILED: Expected discount=-500, got ${updatedPolicy.discountSurcharge}`);
       }
@@ -169,11 +179,43 @@ const PolicyFormTest: React.FC<PolicyFormTestProps> = ({ policy, onRefresh }) =>
           <Button 
             variant="outlined" 
             color="info"
-            onClick={onRefresh}
+            onClick={() => {
+              console.log('Manual refresh triggered');
+              onRefresh();
+            }}
           >
             Refresh Data
           </Button>
         )}
+        
+        <Button 
+          variant="outlined" 
+          color="error"
+          onClick={() => {
+            console.log('Force page reload');
+            window.location.reload();
+          }}
+        >
+          Force Reload
+        </Button>
+        
+        <Button 
+          variant="outlined" 
+          color="secondary"
+          onClick={async () => {
+            console.log('=== DIRECT API TEST ===');
+            try {
+              const freshPolicy = await policyService.getPolicyById(policy.id);
+              console.log('Fresh policy from API:', freshPolicy);
+              setTestResult(`🔍 API DIRECT: Amount=${freshPolicy.amountGuaranteed}, Coverage=${freshPolicy.coverageArea}, Discount=${freshPolicy.discountSurcharge}`);
+            } catch (error: any) {
+              console.error('Direct API test failed:', error);
+              setTestResult(`❌ API ERROR: ${error.message}`);
+            }
+          }}
+        >
+          Check API Direct
+        </Button>
       </Box>
       
       {testResult && (
