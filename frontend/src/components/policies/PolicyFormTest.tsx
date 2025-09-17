@@ -192,8 +192,10 @@ const PolicyFormTest: React.FC<PolicyFormTestProps> = ({ policy, onRefresh }) =>
           variant="outlined" 
           color="error"
           onClick={() => {
-            console.log('Force page reload');
-            window.location.reload();
+            console.log('Manual refresh requested');
+            if (onRefresh) {
+              onRefresh();
+            }
           }}
         >
           Force Reload

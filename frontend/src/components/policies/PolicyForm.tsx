@@ -23,7 +23,7 @@ import {
   DirectionsCar,
   Euro,
   Security,
-  Refresh,
+
 } from '@mui/icons-material';
 import { Policy, CreatePolicyRequest, UpdatePolicyRequest, Client, Vehicle, PolicyDetails } from '../../types/policy';
 import { useFormValidation } from '../../hooks/useFormValidation';
@@ -256,7 +256,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
         
         console.log('Form submission successful');
         showSuccess(isEditing ? 'Policy updated successfully' : 'Policy created successfully');
-        onClose();
+        // Don't close the form here - let the parent component handle it after state updates
       } catch (error: any) {
         const errorMessage = error?.message || 'An error occurred while saving the policy';
         setSubmitError(errorMessage);
@@ -658,43 +658,21 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
         </DialogContent>
 
         <DialogActions sx={{ p: 3, pt: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-            <Box>
-              {isEditing && (
-                <Button
-                  onClick={() => {
-                    console.log('Manual Force Reload triggered');
-                    window.location.reload();
-                  }}
-                  disabled={loading || isSubmitting}
-                  startIcon={<Refresh />}
-                  color="info"
-                  variant="outlined"
-                  size="small"
-                >
-                  Force Reload
-                </Button>
-              )}
-            </Box>
-            
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button 
-                onClick={handleClose} 
-                disabled={loading || isSubmitting}
-                color="inherit"
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                variant="contained" 
-                disabled={loading || isSubmitting || !isValid}
-                sx={{ minWidth: 100 }}
-              >
-                {isSubmitting ? 'Saving...' : (isEditing ? 'Update' : 'Create')}
-              </Button>
-            </Box>
-          </Box>
+          <Button 
+            onClick={handleClose} 
+            disabled={loading || isSubmitting}
+            color="inherit"
+          >
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            variant="contained" 
+            disabled={loading || isSubmitting || !isValid}
+            sx={{ minWidth: 100 }}
+          >
+            {isSubmitting ? 'Saving...' : (isEditing ? 'Update' : 'Create')}
+          </Button>
         </DialogActions>
       </form>
     </Dialog>

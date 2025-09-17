@@ -13,6 +13,8 @@ import PolicyList from '../components/policies/PolicyList';
 import PolicyForm from '../components/policies/PolicyForm';
 import CancelPolicyDialog from '../components/policies/CancelPolicyDialog';
 import PdfPreviewModal from '../components/policies/PdfPreviewModal';
+import UISyncTest from '../components/policies/UISyncTest';
+import PolicyDebugPanel from '../components/policies/PolicyDebugPanel';
 
 const PoliciesPage: React.FC = () => {
   const [policies, setPolicies] = useState<Policy[]>([]);
@@ -26,6 +28,7 @@ const PoliciesPage: React.FC = () => {
   const [formLoading, setFormLoading] = useState(false);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [refreshVersion, setRefreshVersion] = useState(0);
+  const [forceUpdateCounter, setForceUpdateCounter] = useState(0);
   const [notification, setNotification] = useState<{
     open: boolean;
     message: string;
@@ -40,6 +43,19 @@ const PoliciesPage: React.FC = () => {
   useEffect(() => {
     loadData();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keep selectedPolicy synchronized with policies array
+  useEffect(() => {
+    if (selectedPolicy && policies.length > 0) {
+      const updatedSelectedPolicy = policies.find(p => p.id === selectedPolicy.id);
+      if (updatedSelectedPolicy && JSON.stringify(updatedSelectedPolicy) !== JSON.stringify(selectedPolicy)) {
+        console.log('=== SYNCING SELECTED POLICY ===');
+        console.log('Old selectedPolicy:', selectedPolicy);
+        console.log('New selectedPolicy from policies array:', updatedSelectedPolicy);
+        setSelectedPolicy({ ...updatedSelectedPolicy });
+      }
+    }
+  }, [policies, selectedPolicy]);
 
   const loadData = async () => {
     try {
@@ -107,26 +123,23 @@ const PoliciesPage: React.FC = () => {
         
         showNotification('Policy updated successfully', 'success');
         
-        // Multiple refresh strategies to ensure UI updates
-        console.log('=== REFRESH STRATEGY 1: Immediate state update ===');
-        setPolicies(prev => {
-          const updated = prev.map(p => p.id === selectedPolicy.id ? updatedPolicy : p);
-          console.log('Updated policies with immediate state:', updated);
-          return updated;
-        });
+        // Enhanced refresh strategy for reliable UI updates
+        console.log('=== ENHANCED REFRESH STRATEGY ===');
         
-        console.log('=== REFRESH STRATEGY 2: Force server refresh ===');
+        // Use the same direct update mechanism
+        console.log('=== USING DIRECT UPDATE MECHANISM ===');
+        handleDirectUpdate(selectedPolicy.id, updatedPolicy);
+        
+        // Close form immediately to show changes
+        console.log('Closing form to show updated data');
+        setFormOpen(false);
+        
+        // Backup: Server refresh after a delay to ensure consistency
         setTimeout(async () => {
+          console.log('=== BACKUP SERVER REFRESH ===');
           await loadData();
-          console.log('Server refresh completed');
-        }, 100);
-        
-        console.log('=== REFRESH STRATEGY 3: Force page reload ===');
-        // Since Force Reload works, use it as the primary refresh method
-        setTimeout(() => {
-          console.log('Executing automatic page reload after successful form submission...');
-          window.location.reload();
-        }, 1000); // Give time for success notification to show
+          console.log('Backup server refresh completed');
+        }, 2000);
         
         console.log('=== FORM SUBMIT COMPLETED ===');
       } else {
@@ -135,14 +148,18 @@ const PoliciesPage: React.FC = () => {
         const newPolicy = await policyService.createPolicy(policyData as CreatePolicyRequest);
         console.log('New policy created:', newPolicy);
         
-        setPolicies(prev => [...prev, newPolicy]);
+        // Immediate state update for new policy
+        setPolicies(prev => {
+          const newPolicies = [...prev, { ...newPolicy }];
+          console.log('Added new policy to array:', newPolicies);
+          return newPolicies;
+        });
+        
         showNotification('Policy created successfully', 'success');
         
-        // Force reload for new policy creation too
-        setTimeout(() => {
-          console.log('Executing automatic page reload after successful policy creation...');
-          window.location.reload();
-        }, 1000);
+        // Force immediate re-render and close form
+        setRefreshVersion(prev => prev + 1);
+        setFormOpen(false);
       }
     } catch (error: any) {
       console.error('Form submit error:', error);
@@ -178,6 +195,64 @@ const PoliciesPage: React.FC = () => {
     setNotification(prev => ({ ...prev, open: false }));
   };
 
+  const handleForceUpdate = () => {
+    console.log('=== FORCE UPDATE TRIGGERED ===');
+    setForceUpdateCounter(prev => prev + 1);
+    setRefreshVersion(prev => prev + 1000); // Large increment to force change
+    console.log('Force update completed');
+  };
+
+  const handleDirectUpdate = (policyId: number, updatedPolicy: Policy) => {
+    console.log('=== DIRECT UPDATE TRIGGERED ===');
+    console.log('Updating policy ID:', policyId);
+    console.log('With data:', updatedPolicy);
+    
+    // CRITICAL FIX: Update selectedPolicy if it's the one being updated
+    if (selectedPolicy && selectedPolicy.id === policyId) {
+      console.log('=== UPDATING SELECTED POLICY ===');
+      console.log('Old selectedPolicy:', selectedPolicy);
+      const newSelectedPolicy = JSON.parse(JSON.stringify(updatedPolicy));
+      console.log('New selectedPolicy:', newSelectedPolicy);
+      setSelectedPolicy(newSelectedPolicy);
+    }
+    
+    // AGGRESSIVE: Force complete state replacement
+    setPolicies(prevPolicies => {
+      console.log('Previous policies before direct update:', prevPolicies);
+      
+      // Create completely new array with new object references
+      const newPolicies = prevPolicies.map(p => {
+        if (p.id === policyId) {
+          console.log('Found policy to update:', p);
+          console.log('Replacing with:', updatedPolicy);
+          // Return completely new object
+          return JSON.parse(JSON.stringify(updatedPolicy));
+        }
+        // Return new object for all policies to force re-render
+        return JSON.parse(JSON.stringify(p));
+      });
+      
+      console.log('New policies after direct update:', newPolicies);
+      console.log('Updated policy in new array:', newPolicies.find(p => p.id === policyId));
+      return newPolicies;
+    });
+    
+    // Force aggressive re-render
+    setRefreshVersion(prev => {
+      const newVersion = prev + 100;
+      console.log('Direct update: incrementing refresh version to:', newVersion);
+      return newVersion;
+    });
+    
+    setForceUpdateCounter(prev => {
+      const newCounter = prev + 100;
+      console.log('Direct update: incrementing force counter to:', newCounter);
+      return newCounter;
+    });
+    
+    console.log('Direct update completed');
+  };
+
   return (
     <Box>
       {/* Header */}
@@ -200,9 +275,26 @@ const PoliciesPage: React.FC = () => {
         </Button>
       </Box>
 
+      {/* Policy Debug Panel */}
+      <PolicyDebugPanel 
+        key={`debug-${refreshVersion}-${forceUpdateCounter}`}
+        policies={policies}
+        refreshVersion={refreshVersion}
+      />
+
+      {/* UI Synchronization Test */}
+      <UISyncTest 
+        key={`sync-test-${refreshVersion}-${forceUpdateCounter}`}
+        policies={policies}
+        onRefresh={loadData}
+        refreshVersion={refreshVersion}
+        onForceUpdate={handleForceUpdate}
+        onDirectUpdate={handleDirectUpdate}
+      />
+
       {/* Policy List */}
       <PolicyList
-        key={`policies-refresh-${refreshVersion}`}
+        key={`policies-refresh-${refreshVersion}-force-${forceUpdateCounter}`}
         policies={policies}
         loading={loading}
         onEditPolicy={handleEditPolicy}
