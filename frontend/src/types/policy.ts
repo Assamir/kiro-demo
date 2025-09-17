@@ -11,8 +11,8 @@ export interface Policy {
   amountGuaranteed?: number;
   coverageArea?: string;
   status: 'ACTIVE' | 'CANCELED' | 'EXPIRED';
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
   policyDetails?: PolicyDetails;
 }
 

@@ -89,9 +89,13 @@ const PoliciesPage: React.FC = () => {
       
       if (selectedPolicy) {
         // Update existing policy
+        console.log('Updating policy with data:', policyData);
         const updatedPolicy = await policyService.updatePolicy(selectedPolicy.id, policyData as UpdatePolicyRequest);
+        console.log('Received updated policy:', updatedPolicy);
         setPolicies(prev => prev.map(p => p.id === selectedPolicy.id ? updatedPolicy : p));
         showNotification('Policy updated successfully', 'success');
+        // Force refresh data to ensure UI is updated
+        setTimeout(() => loadData(), 500);
       } else {
         // Create new policy
         const newPolicy = await policyService.createPolicy(policyData as CreatePolicyRequest);

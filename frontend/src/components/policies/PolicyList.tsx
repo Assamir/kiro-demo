@@ -29,6 +29,7 @@ import {
   PictureAsPdf,
 } from '@mui/icons-material';
 import { Policy, PolicySearchFilters } from '../../types/policy';
+import PolicyFormTest from './PolicyFormTest';
 
 interface PolicyListProps {
   policies: Policy[];
@@ -169,6 +170,11 @@ const PolicyList: React.FC<PolicyListProps> = ({
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Showing {filteredPolicies.length} of {policies.length} policies
         </Typography>
+
+        {/* Test Component for AC-2024-002001 */}
+        {filteredPolicies.find(p => p.policyNumber === 'AC-2024-002001') && (
+          <PolicyFormTest policy={filteredPolicies.find(p => p.policyNumber === 'AC-2024-002001')!} />
+        )}
 
         {/* Policies Table */}
         <TableContainer component={Paper} variant="outlined">

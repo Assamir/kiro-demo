@@ -235,7 +235,13 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
           };
         }
 
+        console.log('=== FORM SUBMISSION ===');
+        console.log('Form data being submitted:', policyData);
+        console.log('Is editing:', isEditing);
+        
         await onSubmit(policyData);
+        
+        console.log('Form submission successful');
         showSuccess(isEditing ? 'Policy updated successfully' : 'Policy created successfully');
         onClose();
       } catch (error: any) {
@@ -469,6 +475,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
                 value={values.discountSurcharge === '' ? '' : String(values.discountSurcharge)}
                 onChange={(event) => {
                   const value = event.target.value;
+                  console.log('Discount/Surcharge field changed:', value);
                   setValue('discountSurcharge', value === '' ? '' : Number(value));
                 }}
                 onBlur={handleBlur('discountSurcharge')}
@@ -495,6 +502,7 @@ const PolicyForm: React.FC<PolicyFormProps> = ({
                 value={values.amountGuaranteed === '' ? '' : String(values.amountGuaranteed)}
                 onChange={(event) => {
                   const value = event.target.value;
+                  console.log('Amount Guaranteed field changed:', value);
                   setValue('amountGuaranteed', value === '' ? '' : Number(value));
                 }}
                 onBlur={handleBlur('amountGuaranteed')}

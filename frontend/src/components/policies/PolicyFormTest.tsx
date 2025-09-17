@@ -1,0 +1,132 @@
+import React, { useState } from 'react';
+import { Box, Button, Typography, Alert } from '@mui/material';
+import { Policy } from '../../types/policy';
+import { policyService } from '../../services/policyService';
+
+interface PolicyFormTestProps {
+  policy: Policy;
+}
+
+const PolicyFormTest: React.FC<PolicyFormTestProps> = ({ policy }) => {
+  const [testResult, setTestResult] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+
+  const testPolicyUpdate = async () => {
+    setLoading(true);
+    setTestResult('');
+    
+    try {
+      console.log('=== POLICY UPDATE TEST ===');
+      console.log('Original policy:', policy);
+      
+      // Test data
+      const testData = {
+        startDate: policy.startDate,
+        endDate: policy.endDate,
+        discountSurcharge: 123,
+        amountGuaranteed: 999000,
+        coverageArea: 'Europe'
+      };
+      
+      console.log('Sending update data:', testData);
+      
+      // Make the API call
+      const updatedPolicy = await policyService.updatePolicy(policy.id, testData);
+      
+      console.log('Received updated policy:', updatedPolicy);
+      
+      // Check if the update was successful
+      const success = 
+        updatedPolicy.discountSurcharge === 123 &&
+        updatedPolicy.amountGuaranteed === 999000 &&
+        updatedPolicy.coverageArea === 'Europe';
+      
+      if (success) {
+        setTestResult('✅ SUCCESS: Policy update worked correctly!');
+      } else {
+        setTestResult(`❌ FAILED: Policy update did not return expected values.
+          Expected: discountSurcharge=123, amountGuaranteed=999000, coverageArea=Europe
+          Received: discountSurcharge=${updatedPolicy.discountSurcharge}, amountGuaranteed=${updatedPolicy.amountGuaranteed}, coverageArea=${updatedPolicy.coverageArea}`);
+      }
+      
+    } catch (error: any) {
+      console.error('Policy update test failed:', error);
+      setTestResult(`❌ ERROR: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const testFormFields = () => {
+    console.log('=== FORM FIELD TEST ===');
+    
+    // Test if form fields exist and are accessible
+    const amountField = document.querySelector('input[name="amountGuaranteed"]') as HTMLInputElement;
+    const coverageField = document.querySelector('select[name="coverageArea"]') as HTMLSelectElement;
+    const discountField = document.querySelector('input[name="discountSurcharge"]') as HTMLInputElement;
+    
+    console.log('Amount Guaranteed field:', amountField);
+    console.log('Coverage Area field:', coverageField);
+    console.log('Discount/Surcharge field:', discountField);
+    
+    if (amountField) {
+      console.log('Amount field value:', amountField.value);
+      amountField.value = '555000';
+      amountField.dispatchEvent(new Event('change', { bubbles: true }));
+      console.log('Set amount field to 555000');
+    }
+    
+    if (coverageField) {
+      console.log('Coverage field value:', coverageField.value);
+      coverageField.value = 'Worldwide';
+      coverageField.dispatchEvent(new Event('change', { bubbles: true }));
+      console.log('Set coverage field to Worldwide');
+    }
+    
+    if (discountField) {
+      console.log('Discount field value:', discountField.value);
+      discountField.value = '250';
+      discountField.dispatchEvent(new Event('change', { bubbles: true }));
+      console.log('Set discount field to 250');
+    }
+    
+    setTestResult('🔍 Form field test completed - check console for details');
+  };
+
+  return (
+    <Box sx={{ p: 2, border: '1px solid #ccc', borderRadius: 1, mb: 2 }}>
+      <Typography variant="h6" gutterBottom>
+        Policy Form Test - {policy.policyNumber}
+      </Typography>
+      
+      <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        <Button 
+          variant="contained" 
+          onClick={testPolicyUpdate}
+          disabled={loading}
+        >
+          Test API Update
+        </Button>
+        
+        <Button 
+          variant="outlined" 
+          onClick={testFormFields}
+        >
+          Test Form Fields
+        </Button>
+      </Box>
+      
+      {testResult && (
+        <Alert severity={testResult.includes('SUCCESS') ? 'success' : testResult.includes('ERROR') ? 'error' : 'info'}>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: '12px' }}>{testResult}</pre>
+        </Alert>
+      )}
+      
+      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+        Current values: Amount={policy.amountGuaranteed || 'null'}, Coverage={policy.coverageArea || 'null'}, Discount={policy.discountSurcharge || 'null'}
+      </Typography>
+    </Box>
+  );
+};
+
+export default PolicyFormTest;
