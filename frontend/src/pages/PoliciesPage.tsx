@@ -121,19 +121,28 @@ const PoliciesPage: React.FC = () => {
           console.log('Server refresh completed');
         }, 100);
         
-        console.log('=== REFRESH STRATEGY 3: Force component re-render ===');
-        setRefreshVersion(prev => {
-          const newVersion = prev + 10; // Big increment to force change
-          console.log('Setting refresh version to:', newVersion);
-          return newVersion;
-        });
+        console.log('=== REFRESH STRATEGY 3: Force page reload ===');
+        // Since Force Reload works, use it as the primary refresh method
+        setTimeout(() => {
+          console.log('Executing automatic page reload after successful form submission...');
+          window.location.reload();
+        }, 1000); // Give time for success notification to show
         
         console.log('=== FORM SUBMIT COMPLETED ===');
       } else {
         // Create new policy
+        console.log('=== CREATING NEW POLICY ===');
         const newPolicy = await policyService.createPolicy(policyData as CreatePolicyRequest);
+        console.log('New policy created:', newPolicy);
+        
         setPolicies(prev => [...prev, newPolicy]);
         showNotification('Policy created successfully', 'success');
+        
+        // Force reload for new policy creation too
+        setTimeout(() => {
+          console.log('Executing automatic page reload after successful policy creation...');
+          window.location.reload();
+        }, 1000);
       }
     } catch (error: any) {
       console.error('Form submit error:', error);
